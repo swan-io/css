@@ -28,13 +28,14 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "tsup && tsc -p tsconfig.build.json --emitDeclarationOnly",
-    "clean": "rm -rf dist",
     "format": "prettier '**/*' --ignore-unknown --write",
-    "prepack": "pnpm test && pnpm build",
+    "clean": "rm -rf dist",
+    "test:ci": "playwright install --with-deps --only-shell chromium && CI=true vitest --run",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsup && tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "prepack": "pnpm test && pnpm build"
   },
   "prettier": {
     "plugins": [
@@ -45,7 +46,8 @@
     "@emotion/hash": "^0.9.2"
   },
   "devDependencies": {
-    "jsdom": "^25.0.1",
+    "@vitest/browser": "^2.1.8",
+    "playwright": "^1.49.1",
     "prettier": "^3.4.2",
     "prettier-plugin-organize-imports": "^4.1.0",
     "tsup": "^8.3.5",
