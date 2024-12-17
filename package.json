@@ -1,0 +1,55 @@
+{
+  "name": "@swan-io/css",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "An atomic CSS-in-JS library inspired by React Native StyleSheet",
+  "author": "Mathieu Acthernoene <mathieu.acthernoene@swan.io>",
+  "homepage": "https://github.com/swan-io/bot-detector",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/swan-io/bot-detector.git"
+  },
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "css",
+    "css-in-js",
+    "react",
+    "style",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "tsup && tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "format": "prettier '**/*' --ignore-unknown --write",
+    "prepack": "pnpm test && pnpm build",
+    "test": "vitest --run",
+    "test:watch": "vitest --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-organize-imports"
+    ]
+  },
+  "dependencies": {
+    "@emotion/hash": "^0.9.2"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "prettier": "^3.4.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "include": ["src", "__tests__"],
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2019",
+    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "jsx": "react",
+    "moduleResolution": "Node",
+    "outDir": "dist/",
+
+    "allowJs": false,
+    "declaration": true,
+    "noEmit": true,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "stripInternal": true,
+
+    // https://www.typescriptlang.org/tsconfig#Type_Checking_6248
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": false,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}
