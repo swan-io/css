@@ -96,9 +96,10 @@ const appendClassNames = (
   return output;
 };
 
-const getClassName = (selectorText: string): string => {
-  const end = selectorText.indexOf(":");
-  return end > -1 ? selectorText.substring(1, end) : selectorText.substring(1);
+const getClassName = (rule: CSSStyleRule): string => {
+  const selector = rule.selectorText;
+  const end = selector.indexOf(":");
+  return end > -1 ? selector.substring(1, end) : selector.substring(1);
 };
 
 export const createSheet = () => {
@@ -131,7 +132,7 @@ export const createSheet = () => {
   if (resetSheet != null) {
     for (const rule of resetSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
-        resetClassNames.add(rule.selectorText.substring(1));
+        resetClassNames.add(getClassName(rule));
       }
     }
   }
@@ -140,7 +141,7 @@ export const createSheet = () => {
   if (atomicSheet != null) {
     for (const rule of atomicSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
-        atomicClassNames.set(getClassName(rule.selectorText), rule.style[0]);
+        atomicClassNames.set(getClassName(rule), rule.style[0]);
       }
     }
   }
@@ -149,7 +150,7 @@ export const createSheet = () => {
   if (hoverSheet != null) {
     for (const rule of hoverSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
-        hoverClassNames.set(getClassName(rule.selectorText), rule.style[0]);
+        hoverClassNames.set(getClassName(rule), rule.style[0]);
       }
     }
   }
@@ -158,7 +159,7 @@ export const createSheet = () => {
   if (focusSheet != null) {
     for (const rule of focusSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
-        focusClassNames.set(getClassName(rule.selectorText), rule.style[0]);
+        focusClassNames.set(getClassName(rule), rule.style[0]);
       }
     }
   }
@@ -167,7 +168,7 @@ export const createSheet = () => {
   if (activeSheet != null) {
     for (const rule of activeSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
-        activeClassNames.set(getClassName(rule.selectorText), rule.style[0]);
+        activeClassNames.set(getClassName(rule), rule.style[0]);
       }
     }
   }
