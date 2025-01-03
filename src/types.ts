@@ -12,6 +12,7 @@ export type ValueOf<T> = T[keyof T];
 
 type ShorthandProperties = Pick<
   StandardShorthandProperties<Length>,
+  | "backgroundPosition"
   | "borderColor"
   | "borderRadius"
   | "borderStyle"

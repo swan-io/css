@@ -56,7 +56,7 @@ const shorthands: Partial<Record<Property, Property[]>> = {
   scrollPaddingBlock: ["scrollPaddingBlockStart", "scrollPaddingBlockEnd"],
   scrollPaddingInline: ["scrollPaddingInlineStart", "scrollPaddingInlineEnd"],
 } satisfies Record<
-  Exclude<ShorthandProperty, "flex">, // flex is handled differently
+  Exclude<ShorthandProperty, "backgroundPosition" | "flex">,
   LonghandProperty[]
 >;
 
@@ -73,13 +73,12 @@ const preprocessRule = (
         // @ts-expect-error
         acc[longhand] = value;
       }
-
-      if (process.env.NODE_ENV === "development") {
-        if (typeof value === "string" && valueParser(value).nodes.length > 1) {
-          console.warn(
-            `Value is "${value}" but only single values are supported.`,
-          );
-        }
+    } else if (key === "backgroundPosition") {
+      if (value !== "top" && value !== "bottom") {
+        acc.backgroundPositionX = value;
+      }
+      if (value !== "left" && value !== "right") {
+        acc.backgroundPositionY = value;
       }
     } else if (key === "flex") {
       if (typeof value === "number" && value >= 0 && Number.isFinite(value)) {
@@ -90,6 +89,18 @@ const preprocessRule = (
     } else {
       // @ts-expect-error
       acc[key] = value;
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      if (
+        (shorthand != null || key === "backgroundPosition" || key === "flex") &&
+        typeof value === "string" &&
+        valueParser(value).nodes.length > 1
+      ) {
+        console.warn(
+          `Value is "${value}" but only single values are supported.`,
+        );
+      }
     }
   }
 };
