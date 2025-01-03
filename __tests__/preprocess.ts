@@ -5,10 +5,12 @@ import { getSheets } from "./utils";
 test("longhands properties are expanded", () => {
   const sheet = css.make({
     box: {
+      backgroundPosition: "top",
       borderColor: "red",
       borderRadius: 4,
       borderStyle: "dotted",
       borderWidth: 2,
+      flex: 1,
       inset: 10,
       margin: 10,
       padding: 10,
@@ -16,13 +18,14 @@ test("longhands properties are expanded", () => {
   });
 
   expect(sheet.box).toMatchInlineSnapshot(
-    `"x-1gj51ll x-19tkz8q x-1ogglhr x-yx774m x-1h88r7n x-1bdvcgl x-misotl x-qirwg6 x-1ppxwh4 x-1o74rcf x-1vqxhxy x-9xwnqj x-29ghif x-1h9xl6o x-s861vp x-1a0ix0g x-o0zst5 x-zs882z x-4esd6u x-jwnrsh x-8wdww5 x-1f13l4q x-lx60ht x-cl7tym x-jm3jfd x-jlcvdv x-6rz8sj x-h002ba"`,
+    `"x-1ajv4b8 x-1gj51ll x-19tkz8q x-1ogglhr x-yx774m x-1h88r7n x-1bdvcgl x-misotl x-qirwg6 x-1ppxwh4 x-1o74rcf x-1vqxhxy x-9xwnqj x-29ghif x-1h9xl6o x-s861vp x-1a0ix0g x-fh1clx x-1t1j3t x-tklrwr x-o0zst5 x-zs882z x-4esd6u x-jwnrsh x-8wdww5 x-1f13l4q x-lx60ht x-cl7tym x-jm3jfd x-jlcvdv x-6rz8sj x-h002ba"`,
   );
 
   const { atomic } = getSheets();
 
   expect(atomic.rules.join("\n")).toMatchInlineSnapshot(`
-    ".x-1gj51ll { border-top-color: rgb(255, 0, 0); }
+    ".x-1ajv4b8 { background-position-y: 0%; }
+    .x-1gj51ll { border-top-color: rgb(255, 0, 0); }
     .x-19tkz8q { border-right-color: rgb(255, 0, 0); }
     .x-1ogglhr { border-bottom-color: rgb(255, 0, 0); }
     .x-yx774m { border-left-color: rgb(255, 0, 0); }
@@ -38,6 +41,9 @@ test("longhands properties are expanded", () => {
     .x-1h9xl6o { border-right-width: 2px; }
     .x-s861vp { border-bottom-width: 2px; }
     .x-1a0ix0g { border-left-width: 2px; }
+    .x-fh1clx { flex-grow: 1; }
+    .x-1t1j3t { flex-shrink: 1; }
+    .x-tklrwr { flex-basis: 0%; }
     .x-o0zst5 { top: 10px; }
     .x-zs882z { right: 10px; }
     .x-4esd6u { bottom: 10px; }
