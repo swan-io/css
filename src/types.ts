@@ -1,4 +1,5 @@
 import {
+  Globals,
   Property,
   StandardLonghandProperties,
   StandardShorthandProperties,
@@ -6,7 +7,7 @@ import {
 } from "csstype";
 
 type Length = number | (string & {});
-type Simplify<T> = { [K in keyof T]: T[K] } & {};
+type Simplify<T> = { [K in keyof T]: Exclude<T[K], Globals> } & {};
 
 export type ValueOf<T> = T[keyof T];
 
