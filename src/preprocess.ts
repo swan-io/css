@@ -109,7 +109,8 @@ export const preprocessKeyframes = (keyframes: Keyframes): Keyframes => {
   const output: Keyframes = {};
 
   forEach(keyframes, (keyframe, value) => {
-    output[keyframe] = preprocessStyle(value);
+    output[keyframe === "from" ? "0%" : keyframe === "to" ? "100%" : keyframe] =
+      preprocessStyle(value);
   });
 
   return output;
