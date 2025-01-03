@@ -51,17 +51,3 @@ export const getSheets = () => {
     active: convertSheet(active),
   };
 };
-
-export const getElementStyle = (element: Element): Record<string, string> => {
-  const styleMap: Record<string, string> = {};
-
-  for (const [key, item] of element.computedStyleMap()) {
-    const value = [...item][0]?.toString();
-
-    if (value != null) {
-      styleMap[key] = value;
-    }
-  }
-
-  return styleMap;
-};

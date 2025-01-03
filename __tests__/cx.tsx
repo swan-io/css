@@ -2,7 +2,6 @@ import * as React from "react";
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
 import { css, cx } from "../src";
-import { getElementStyle } from "./utils";
 
 test("cx concatenates atomic classes", () => {
   const sheet = css.make({
@@ -49,10 +48,10 @@ test("cx allows one reset style", async () => {
 
   const screen = render(<div data-testid="box" className={className} />);
   const box = await screen.getByTestId("box");
-  const style = getElementStyle(box.element());
+  const style = window.getComputedStyle(box.element());
 
-  expect(style["background-color"]).toBe("rgb(255, 0, 0)");
-  expect(style["color"]).toBe("rgb(102, 51, 153)");
+  expect(style.backgroundColor).toBe("rgb(255, 0, 0)");
+  expect(style.color).toBe("rgb(102, 51, 153)");
 });
 
 test("cx allows external classes", async () => {
@@ -66,7 +65,7 @@ test("cx allows external classes", async () => {
 
   const screen = render(<input data-testid="box" className={className} />);
   const box = await screen.getByTestId("box");
-  const style = getElementStyle(box.element());
+  const style = window.getComputedStyle(box.element());
 
-  expect(style["-webkit-line-clamp"]).toBe("1");
+  expect(style.webkitLineClamp).toBe("1");
 });
