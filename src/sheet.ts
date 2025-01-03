@@ -221,99 +221,62 @@ export const createSheet = () => {
     return className;
   };
 
-  const insertHoverRules = (style: Style): string => {
-    let classNames = "";
-
-    if (hoverSheet == null) {
-      return classNames;
-    }
-
-    forEach(style, (key, value) => {
-      const rule = stringifyRule(key, value);
-      const className = "h-" + hash(rule);
-
-      if (!hoverClassNames.has(className)) {
-        hoverClassNames.set(className, key);
-        insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
-      }
-
-      classNames = appendString(classNames, className);
-    });
-
-    return classNames;
-  };
-
-  const insertFocusRules = (style: Style): string => {
-    let classNames = "";
-
-    if (focusSheet == null) {
-      return classNames;
-    }
-
-    forEach(style, (key, value) => {
-      const rule = stringifyRule(key, value);
-      const className = "f-" + hash(rule);
-
-      if (!focusClassNames.has(className)) {
-        focusClassNames.set(className, key);
-        insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
-      }
-
-      classNames = appendString(classNames, className);
-    });
-
-    return classNames;
-  };
-
-  const insertActiveRules = (style: Style): string => {
-    let classNames = "";
-
-    if (activeSheet == null) {
-      return classNames;
-    }
-
-    forEach(style, (key, value) => {
-      const rule = stringifyRule(key, value);
-      const className = "a-" + hash(rule);
-
-      if (!activeClassNames.has(className)) {
-        activeClassNames.set(className, key);
-        insertRule(activeSheet, `.${className}:active { ${rule} }`);
-      }
-
-      classNames = appendString(classNames, className);
-    });
-
-    return classNames;
-  };
-
   const insertAtomicRules = (style: Nestable<Style>): string => {
     let classNames = "";
 
-    if (atomicSheet == null) {
+    if (
+      atomicSheet == null ||
+      hoverSheet == null ||
+      focusSheet == null ||
+      activeSheet == null
+    ) {
       return classNames;
     }
 
     forEach(style, (key, value) => {
-      let className = "";
-
       if (key === ":hover") {
-        className = insertHoverRules(value as Style);
+        forEach(value as Style, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "h-" + hash(rule);
+          classNames = appendString(classNames, className);
+
+          if (!hoverClassNames.has(className)) {
+            hoverClassNames.set(className, key);
+            insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
+          }
+        });
       } else if (key === ":focus") {
-        className = insertFocusRules(value as Style);
+        forEach(value as Style, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "f-" + hash(rule);
+          classNames = appendString(classNames, className);
+
+          if (!focusClassNames.has(className)) {
+            focusClassNames.set(className, key);
+            insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
+          }
+        });
       } else if (key === ":active") {
-        className = insertActiveRules(value as Style);
+        forEach(value as Style, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "a-" + hash(rule);
+          classNames = appendString(classNames, className);
+
+          if (!activeClassNames.has(className)) {
+            activeClassNames.set(className, key);
+            insertRule(activeSheet, `.${className}:active { ${rule} }`);
+          }
+        });
       } else {
         const rule = stringifyRule(key, value as string | number);
-        className = "x-" + hash(rule);
+        const className = "x-" + hash(rule);
+        classNames = appendString(classNames, className);
 
         if (!atomicClassNames.has(className)) {
           atomicClassNames.set(className, key);
           insertRule(atomicSheet, `.${className} { ${rule} }`);
         }
       }
-
-      classNames = appendString(classNames, className);
     });
 
     return classNames;
