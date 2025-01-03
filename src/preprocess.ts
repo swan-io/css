@@ -68,6 +68,18 @@ const preprocessRule = (
   if (value != null) {
     const shorthand = shorthands[key];
 
+    if (process.env.NODE_ENV === "development") {
+      if (
+        (shorthand != null || key === "backgroundPosition" || key === "flex") &&
+        typeof value === "string" &&
+        valueParser(value).nodes.length > 1
+      ) {
+        console.warn(
+          `Value is "${value}" but only single values are supported.`,
+        );
+      }
+    }
+
     if (shorthand != null) {
       for (const longhand of shorthand) {
         // @ts-expect-error
@@ -89,18 +101,6 @@ const preprocessRule = (
     } else {
       // @ts-expect-error
       acc[key] = value;
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      if (
-        (shorthand != null || key === "backgroundPosition" || key === "flex") &&
-        typeof value === "string" &&
-        valueParser(value).nodes.length > 1
-      ) {
-        console.warn(
-          `Value is "${value}" but only single values are supported.`,
-        );
-      }
     }
   }
 };
