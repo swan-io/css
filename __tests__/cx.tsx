@@ -46,9 +46,9 @@ test("cx allows one reset style", async () => {
   const className = cx(sheet.$foo, sheet.$bar, sheet.baz);
   expect(className).toMatchInlineSnapshot(`"r-1vjaegw x-1ngrkn9 h-1g5wjl1"`);
 
-  const screen = render(<div data-testid="box" className={className} />);
-  const box = await screen.getByTestId("box");
-  const style = window.getComputedStyle(box.element());
+  const screen = render(<div data-testid="div" className={className} />);
+  const div = await screen.getByTestId("div");
+  const style = window.getComputedStyle(div.element());
 
   expect(style.backgroundColor).toBe("rgb(255, 0, 0)");
   expect(style.color).toBe("rgb(102, 51, 153)");
@@ -63,9 +63,9 @@ test("cx allows external classes", async () => {
   const className = cx(sheet.foo, false && sheet.bar, true && ["foo"]);
   expect(className).toMatchInlineSnapshot(`"foo x-1acs8jx"`);
 
-  const screen = render(<input data-testid="box" className={className} />);
-  const box = await screen.getByTestId("box");
-  const style = window.getComputedStyle(box.element());
+  const screen = render(<input data-testid="div" className={className} />);
+  const div = await screen.getByTestId("div");
+  const style = window.getComputedStyle(div.element());
 
   expect(style.webkitLineClamp).toBe("1");
 });
