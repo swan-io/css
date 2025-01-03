@@ -11,7 +11,6 @@ import {
 import { forEach } from "./utils";
 
 const shorthands: Partial<Record<Property, Property[]>> = {
-  backgroundPosition: ["backgroundPositionX", "backgroundPositionY"],
   borderColor: [
     "borderTopColor",
     "borderRightColor",
