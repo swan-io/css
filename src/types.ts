@@ -1,4 +1,5 @@
 import {
+  DataType,
   Globals,
   Property,
   StandardLonghandProperties,
@@ -7,7 +8,17 @@ import {
 } from "csstype";
 
 type Length = number | (string & {});
-type Simplify<T> = { [K in keyof T]: Exclude<T[K], Globals> } & {};
+
+type ExcludedValue =
+  | Globals
+  | DataType.DeprecatedSystemColor
+  | `-moz-${string}`
+  | `-ms-${string}`
+  | `-webkit-${string}`;
+
+type Simplify<T> = {
+  [K in keyof T]: Exclude<T[K], ExcludedValue>;
+} & {};
 
 export type ValueOf<T> = T[keyof T];
 
