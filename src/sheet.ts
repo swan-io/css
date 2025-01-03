@@ -173,28 +173,28 @@ export const createSheet = () => {
     }
   }
 
-  const insertKeyframes = (styles: Keyframes): string | undefined => {
+  const insertKeyframes = (keyframes: Keyframes): string | undefined => {
     if (keyframesSheet == null) {
       return;
     }
 
-    let keyframes = "";
+    let body = "";
 
-    forEach(styles, (key, value) => {
+    forEach(keyframes, (key, value) => {
       let rules = "";
 
       forEach(value, (key, value) => {
         rules = appendString(rules, stringifyRule(key, value));
       });
 
-      keyframes = appendString(keyframes, `${key} { ${rules} }`);
+      body = appendString(body, `${key} { ${rules} }`);
     });
 
-    const name = "k-" + hash(keyframes);
+    const name = "k-" + hash(body);
 
     if (!keyframesNames.has(name)) {
       keyframesNames.add(name);
-      insertRule(keyframesSheet, `@keyframes ${name} { ${keyframes} }`);
+      insertRule(keyframesSheet, `@keyframes ${name} { ${body} }`);
     }
 
     return name;
