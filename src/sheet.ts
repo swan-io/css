@@ -238,44 +238,48 @@ export const createSheet = () => {
         forEach(value as Style, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "h-" + hash(rule);
-          classNames = appendString(classNames, className);
 
           if (!hoverClassNames.has(className)) {
             hoverClassNames.set(className, key);
             insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
           }
+
+          classNames = appendString(classNames, className);
         });
       } else if (key === ":focus") {
         forEach(value as Style, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "f-" + hash(rule);
-          classNames = appendString(classNames, className);
 
           if (!focusClassNames.has(className)) {
             focusClassNames.set(className, key);
             insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
           }
+
+          classNames = appendString(classNames, className);
         });
       } else if (key === ":active") {
         forEach(value as Style, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "a-" + hash(rule);
-          classNames = appendString(classNames, className);
 
           if (!activeClassNames.has(className)) {
             activeClassNames.set(className, key);
             insertRule(activeSheet, `.${className}:active { ${rule} }`);
           }
+
+          classNames = appendString(classNames, className);
         });
       } else {
         const rule = stringifyRule(key, value as string | number);
         const className = "x-" + hash(rule);
-        classNames = appendString(classNames, className);
 
         if (!atomicClassNames.has(className)) {
           atomicClassNames.set(className, key);
           insertRule(atomicSheet, `.${className} { ${rule} }`);
         }
+
+        classNames = appendString(classNames, className);
       }
     });
 
@@ -295,29 +299,13 @@ export const createSheet = () => {
 
     for (const className of classNames) {
       if (atomicClassNames.has(className)) {
-        const key = atomicClassNames.get(className);
-
-        if (key != null) {
-          atomic[key] = className;
-        }
+        atomic[atomicClassNames.get(className) as string] = className;
       } else if (hoverClassNames.has(className)) {
-        const key = hoverClassNames.get(className);
-
-        if (key != null) {
-          hover[key] = className;
-        }
+        hover[hoverClassNames.get(className) as string] = className;
       } else if (focusClassNames.has(className)) {
-        const key = focusClassNames.get(className);
-
-        if (key != null) {
-          focus[key] = className;
-        }
+        focus[focusClassNames.get(className) as string] = className;
       } else if (activeClassNames.has(className)) {
-        const key = activeClassNames.get(className);
-
-        if (key != null) {
-          active[key] = className;
-        }
+        active[activeClassNames.get(className) as string] = className;
       } else if (resetClassNames.has(className)) {
         if (reset == null) {
           reset = className;
