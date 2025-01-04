@@ -193,8 +193,8 @@ export const createSheet = () => {
     const name = "k-" + hash(body);
 
     if (!keyframesNames.has(name)) {
-      keyframesNames.add(name);
       insertRule(keyframesSheet, `@keyframes ${name} { ${body} }`);
+      keyframesNames.add(name);
     }
 
     return name;
@@ -214,8 +214,8 @@ export const createSheet = () => {
     const className = "r-" + hash(rules);
 
     if (!resetClassNames.has(className)) {
-      resetClassNames.add(className);
       insertRule(resetSheet, `.${className} { ${rules} }`);
+      resetClassNames.add(className);
     }
 
     return className;
@@ -240,8 +240,8 @@ export const createSheet = () => {
           const className = "h-" + hash(rule);
 
           if (!hoverClassNames.has(className)) {
-            hoverClassNames.set(className, key);
             insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
+            hoverClassNames.set(className, key);
           }
 
           classNames = appendString(classNames, className);
@@ -252,8 +252,8 @@ export const createSheet = () => {
           const className = "f-" + hash(rule);
 
           if (!focusClassNames.has(className)) {
-            focusClassNames.set(className, key);
             insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
+            focusClassNames.set(className, key);
           }
 
           classNames = appendString(classNames, className);
@@ -264,8 +264,8 @@ export const createSheet = () => {
           const className = "a-" + hash(rule);
 
           if (!activeClassNames.has(className)) {
-            activeClassNames.set(className, key);
             insertRule(activeSheet, `.${className}:active { ${rule} }`);
+            activeClassNames.set(className, key);
           }
 
           classNames = appendString(classNames, className);
@@ -275,8 +275,8 @@ export const createSheet = () => {
         const className = "x-" + hash(rule);
 
         if (!atomicClassNames.has(className)) {
-          atomicClassNames.set(className, key);
           insertRule(atomicSheet, `.${className} { ${rule} }`);
+          atomicClassNames.set(className, key);
         }
 
         classNames = appendString(classNames, className);
