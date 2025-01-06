@@ -1,3 +1,3 @@
 # css
 
-An atomic CSS-in-JS library inspired by React Native `StyleSheet`
+A lightweight and performant atomic CSS-in-JS library.
