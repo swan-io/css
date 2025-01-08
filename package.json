@@ -37,7 +37,7 @@
     "test:watch": "vitest --watch",
     "typecheck": "tsc --noEmit",
     "build": "tsup && tsc -p tsconfig.build.json --emitDeclarationOnly",
-    "prepack": "pnpm test && pnpm build"
+    "prepack": "pnpm typecheck && pnpm test && pnpm build"
   },
   "prettier": {
     "plugins": [
