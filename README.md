@@ -47,7 +47,7 @@ const Component = ({ large }: { large: boolean }) => (
 
 ### css.make
 
-Create a new sheet object.
+Create a new sheet object and inject the associated styles.
 
 ```tsx
 const sheet = css.make({
@@ -85,7 +85,7 @@ const sheet = css.make({
 
 ### css.keyframes
 
-Injects a keyframes rule and generates a unique name for it.
+Inject a keyframes rule and generate a unique name for it.
 
 ```tsx
 const sheet = css.make({
