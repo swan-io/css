@@ -1,8 +1,8 @@
 {
   "name": "@swan-io/css",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
-  "description": "An atomic CSS-in-JS library inspired by React Native StyleSheet",
+  "description": "A lightweight and performant atomic CSS-in-JS library",
   "author": "Mathieu Acthernoene <mathieu.acthernoene@swan.io>",
   "homepage": "https://github.com/swan-io/bot-detector",
   "repository": {
