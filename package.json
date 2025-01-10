@@ -4,10 +4,10 @@
   "license": "MIT",
   "description": "A lightweight and performant atomic CSS-in-JS library",
   "author": "Mathieu Acthernoene <mathieu.acthernoene@swan.io>",
-  "homepage": "https://github.com/swan-io/bot-detector",
+  "homepage": "https://github.com/swan-io/css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/swan-io/bot-detector.git"
+    "url": "https://github.com/swan-io/css.git"
   },
   "packageManager": "pnpm@9.15.3",
   "engines": {
