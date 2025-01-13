@@ -1,7 +1,7 @@
 import normalizeColor from "@react-native/normalize-colors";
 import { Property } from "./types";
 
-const normalizeValueCache: Record<string, string> = {};
+const normalizeValueCache: Record<string, string> = Object.create(null);
 
 /**
  * CSS properties which accept numbers but are not in units of "px"
@@ -64,16 +64,13 @@ const isWebColor = (color: string): boolean =>
   color === "inherit" ||
   color.indexOf("var(") === 0;
 
-export const normalizeValue = (
-  value: string | number | undefined,
-  property: string,
-): string | undefined => {
+export const normalizeValue = (key: string, value: string | number): string => {
   if (typeof value === "number") {
-    return unitlessProperties.has(property) ? String(value) : `${value}px`;
+    return unitlessProperties.has(key) ? String(value) : `${value}px`;
   }
 
-  if (colorProperties.has(property)) {
-    if (value == null || isWebColor(value)) {
+  if (colorProperties.has(key)) {
+    if (isWebColor(value)) {
       return value;
     }
 

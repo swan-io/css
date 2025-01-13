@@ -1,4 +1,4 @@
-import hash from "@emotion/hash";
+import { hash } from "./hash";
 import { hyphenateName } from "./hyphenateName";
 import { normalizeValue } from "./normalizeValue";
 import { ClassNames, Keyframes, Nestable, Style } from "./types";
@@ -53,15 +53,15 @@ const insertRule = (sheet: CSSMediaRule, rule: string): void => {
   }
 };
 
-const stringifyRule = (name: string, value: string | number): string => {
-  if (name === "appearance") {
+const stringifyRule = (key: string, value: string | number): string => {
+  if (key === "appearance") {
     return `-webkit-appearance: ${value}; appearance: ${value};`;
   }
-  if (name === "lineClamp") {
+  if (key === "lineClamp") {
     return `-webkit-line-clamp: ${value}; line-clamp: ${value};`;
   }
 
-  return `${hyphenateName(name)}: ${normalizeValue(value, name)};`;
+  return `${hyphenateName(key)}: ${normalizeValue(key, value)};`;
 };
 
 const extractClassNames = (items: ClassNames, acc: string[]): string[] => {

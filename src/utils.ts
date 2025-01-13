@@ -14,3 +14,15 @@ export const forEach = <T extends Record<PropertyKey, unknown>>(
     }
   }
 };
+
+export const memoize = <T>(fn: (arg: string) => T) => {
+  const cache: Record<string, T> = Object.create(null);
+
+  return (arg: string): T => {
+    if (cache[arg] == null) {
+      cache[arg] = fn(arg);
+    }
+
+    return cache[arg];
+  };
+};
