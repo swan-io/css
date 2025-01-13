@@ -1,4 +1,4 @@
 import rawHash from "@emotion/hash";
-import { memoizeOne } from "./utils";
+import { memoize } from "./utils";
 
-export const hash = memoizeOne(rawHash);
+export const hash = memoize(rawHash);

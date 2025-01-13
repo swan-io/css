@@ -15,30 +15,14 @@ export const forEach = <T extends Record<PropertyKey, unknown>>(
   }
 };
 
-export const memoizeOne = <T>(fn: (value: string) => T) => {
+export const memoize = <T>(fn: (arg: string) => T) => {
   const cache: Record<string, T> = Object.create(null);
 
-  return (value: string): T => {
-    if (cache[value] === undefined) {
-      cache[value] = fn(value);
+  return (arg: string): T => {
+    if (cache[arg] == null) {
+      cache[arg] = fn(arg);
     }
 
-    return cache[value];
-  };
-};
-
-export const memoizeTwo = <T>(
-  fn: (key: string, value: string | number) => T,
-) => {
-  const cache: Record<string, T> = Object.create(null);
-
-  return (key: string, value: string | number): T => {
-    const cacheKey = key + ":" + value;
-
-    if (cache[cacheKey] === undefined) {
-      cache[cacheKey] = fn(key, value);
-    }
-
-    return cache[cacheKey];
+    return cache[arg];
   };
 };
