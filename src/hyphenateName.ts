@@ -4,6 +4,6 @@ import { memoizeOne } from "./utils";
 
 const uppercasePattern = /([A-Z])/g;
 
-export const hyphenateName = memoizeOne((value: string): string =>
-  value.replace(uppercasePattern, "-$1").toLowerCase(),
+export const hyphenateName = memoizeOne((name: string): string =>
+  name.replace(uppercasePattern, "-$1").toLowerCase(),
 );
