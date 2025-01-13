@@ -1,6 +1,6 @@
 {
   "name": "@swan-io/css",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "description": "A lightweight and performant atomic CSS-in-JS library",
   "author": "Mathieu Acthernoene <mathieu.acthernoene@swan.io>",

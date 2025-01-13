@@ -1,7 +1,6 @@
 import normalizeColor from "@react-native/normalize-colors";
 import { Property } from "./types";
-
-const normalizeValueCache: Record<string, string> = {};
+import { memoizeTwo } from "./utils";
 
 /**
  * CSS properties which accept numbers but are not in units of "px"
@@ -64,37 +63,31 @@ const isWebColor = (color: string): boolean =>
   color === "inherit" ||
   color.indexOf("var(") === 0;
 
-export const normalizeValue = (
-  value: string | number | undefined,
-  property: string,
-): string | undefined => {
-  if (typeof value === "number") {
-    return unitlessProperties.has(property) ? String(value) : `${value}px`;
-  }
-
-  if (colorProperties.has(property)) {
-    if (value == null || isWebColor(value)) {
-      return value;
+export const normalizeValue = memoizeTwo(
+  (key: string, value: string | number): string => {
+    if (typeof value === "number") {
+      return unitlessProperties.has(key) ? String(value) : `${value}px`;
     }
 
-    if (normalizeValueCache[value] != null) {
-      return normalizeValueCache[value];
+    if (colorProperties.has(key)) {
+      if (isWebColor(value)) {
+        return value;
+      }
+
+      const normalizedColor = normalizeColor(value);
+
+      if (normalizedColor != null) {
+        const int = ((normalizedColor << 24) | (normalizedColor >>> 8)) >>> 0;
+
+        const r = (int >> 16) & 255;
+        const g = (int >> 8) & 255;
+        const b = int & 255;
+        const a = ((int >> 24) & 255) / 255;
+
+        return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
+      }
     }
 
-    const normalizedColor = normalizeColor(value);
-
-    if (normalizedColor != null) {
-      const int = ((normalizedColor << 24) | (normalizedColor >>> 8)) >>> 0;
-
-      const r = (int >> 16) & 255;
-      const g = (int >> 8) & 255;
-      const b = int & 255;
-      const a = ((int >> 24) & 255) / 255;
-
-      normalizeValueCache[value] = `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
-      return normalizeValueCache[value];
-    }
-  }
-
-  return value;
-};
+    return value;
+  },
+);
