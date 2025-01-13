@@ -88,7 +88,8 @@ export const normalizeValue = (key: string, value: string | number): string => {
       const b = int & 255;
       const a = ((int >> 24) & 255) / 255;
 
-      return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
+      normalizeValueCache[value] = `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
+      return normalizeValueCache[value];
     }
   }
 
