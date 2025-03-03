@@ -86,10 +86,23 @@ const preprocessRule = (
         acc[longhand] = value;
       }
     } else if (key === "backgroundPosition") {
-      if (value !== "top" && value !== "bottom") {
+      if (value === "center") {
+        acc.backgroundPositionX = "50%";
+        acc.backgroundPositionY = "50%";
+      } else if (value === "top") {
+        acc.backgroundPositionX = "50%";
+        acc.backgroundPositionY = "0%";
+      } else if (value === "right") {
+        acc.backgroundPositionX = "100%";
+        acc.backgroundPositionY = "50%";
+      } else if (value === "bottom") {
+        acc.backgroundPositionX = "50%";
+        acc.backgroundPositionY = "100%";
+      } else if (value === "left") {
+        acc.backgroundPositionX = "0%";
+        acc.backgroundPositionY = "50%";
+      } else {
         acc.backgroundPositionX = value;
-      }
-      if (value !== "left" && value !== "right") {
         acc.backgroundPositionY = value;
       }
     } else if (key === "flex") {

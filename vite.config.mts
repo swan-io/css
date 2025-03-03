@@ -11,7 +11,7 @@ export default defineConfig({
     browser: {
       enabled: true,
       headless: CI,
-      name: BROWSER,
+      instances: [{ browser: BROWSER }],
       provider: "playwright",
     },
   },
