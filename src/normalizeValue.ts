@@ -1,5 +1,5 @@
 import normalizeColor from "@react-native/normalize-colors";
-import { Property } from "./types";
+import type { Property } from "./types";
 
 const normalizeValueCache: Record<string, string> = Object.create(null);
 

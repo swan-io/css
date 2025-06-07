@@ -1,20 +1,18 @@
 {
-  "include": ["__tests__", "src"],
+  "include": ["./src"],
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES2019",
-    "lib": ["DOM", "DOM.Iterable", "ES2019"],
-    "jsx": "react",
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react-jsx",
     "moduleResolution": "Node",
     "outDir": "dist/",
 
     "allowJs": false,
-    "declaration": true,
+    "declaration": false,
     "noEmit": true,
     "sourceMap": true,
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "stripInternal": true,
 
@@ -25,8 +23,13 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noImplicitReturns": false,
+    "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+
+    "paths": {
+      "@swan-io/css": ["../src"]
+    }
   }
 }

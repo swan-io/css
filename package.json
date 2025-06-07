@@ -41,7 +41,7 @@
     "test:watch": "vitest watch",
     "typecheck": "tsc --noEmit",
     "build": "tsup && tsc -p tsconfig.build.json --emitDeclarationOnly",
-    "prepack": "pnpm typecheck && pnpm test && pnpm build"
+    "prepack": "prettier '**/*' -u -c && pnpm typecheck && pnpm test && pnpm build"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
