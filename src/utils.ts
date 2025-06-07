@@ -1,4 +1,4 @@
-import { ValueOf } from "./types";
+import type { ValueOf } from "./types";
 
 export const forEach = <T extends Record<PropertyKey, unknown>>(
   object: T,

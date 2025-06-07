@@ -1,5 +1,5 @@
 import valueParser from "postcss-value-parser";
-import {
+import type {
   Keyframes,
   LonghandProperty,
   Nestable,

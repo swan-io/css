@@ -4,7 +4,7 @@ import {
   preprocessResetStyle,
 } from "./preprocess";
 import { createSheet } from "./sheet";
-import { Keyframes, Nestable, Style } from "./types";
+import type { Keyframes, Nestable, Style } from "./types";
 import { forEach } from "./utils";
 
 const sheet = createSheet();

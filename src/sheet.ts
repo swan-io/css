@@ -1,7 +1,7 @@
 import { hash } from "./hash";
 import { hyphenateName } from "./hyphenateName";
 import { normalizeValue } from "./normalizeValue";
-import { ClassNames, Keyframes, Nestable, Style } from "./types";
+import type { ClassNames, Keyframes, Nestable, Style } from "./types";
 import { forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
