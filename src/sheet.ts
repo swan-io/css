@@ -290,6 +290,8 @@ export const createSheet = () => {
     const classNames = extractClassNames(items, []);
 
     let output = "";
+
+    let cacheKey: string | undefined = undefined;
     let reset: string | undefined = undefined;
 
     const atomic: Record<string, string> = {};
@@ -298,15 +300,35 @@ export const createSheet = () => {
     const active: Record<string, string> = {};
 
     for (const className of classNames) {
-      if (atomicClassNames.has(className)) {
-        atomic[atomicClassNames.get(className) as string] = className;
-      } else if (hoverClassNames.has(className)) {
-        hover[hoverClassNames.get(className) as string] = className;
-      } else if (focusClassNames.has(className)) {
-        focus[focusClassNames.get(className) as string] = className;
-      } else if (activeClassNames.has(className)) {
-        active[activeClassNames.get(className) as string] = className;
-      } else if (resetClassNames.has(className)) {
+      cacheKey = atomicClassNames.get(className);
+
+      if (cacheKey != null) {
+        atomic[cacheKey] = className;
+        continue;
+      }
+
+      cacheKey = hoverClassNames.get(className);
+
+      if (cacheKey != null) {
+        hover[cacheKey] = className;
+        continue;
+      }
+
+      cacheKey = focusClassNames.get(className);
+
+      if (cacheKey != null) {
+        focus[cacheKey] = className;
+        continue;
+      }
+
+      cacheKey = activeClassNames.get(className);
+
+      if (cacheKey != null) {
+        active[cacheKey] = className;
+        continue;
+      }
+
+      if (resetClassNames.has(className)) {
         if (reset == null) {
           reset = className;
         } else if (reset !== className) {
