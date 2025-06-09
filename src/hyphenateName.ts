@@ -1,4 +1,4 @@
-// https://github.com/facebook/react/blob/v19.0.0/packages/react-dom-bindings/src/shared/hyphenateStyleName.js
+// https://github.com/facebook/react/blob/v19.1.0/packages/react-dom-bindings/src/shared/hyphenateStyleName.js
 
 import { memoize } from "./utils";
 

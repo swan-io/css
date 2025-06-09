@@ -5,7 +5,7 @@ const normalizeValueCache: Record<string, string> = Object.create(null);
 
 /**
  * CSS properties which accept numbers but are not in units of "px"
- * From https://github.com/facebook/react/blob/v19.0.0/packages/react-dom-bindings/src/shared/isUnitlessNumber.js
+ * From https://github.com/facebook/react/blob/v19.1.0/packages/react-dom-bindings/src/shared/isUnitlessNumber.js
  */
 const unitlessProperties = new Set<string>([
   "animationIterationCount",
@@ -45,7 +45,7 @@ const unitlessProperties = new Set<string>([
 ] satisfies Property[]);
 
 /**
- * From https://github.com/necolas/react-native-web/blob/0.19.13/packages/react-native-web/src/exports/StyleSheet/compiler/normalizeValueWithProperty.js#L13
+ * From https://github.com/necolas/react-native-web/blob/0.20.0/packages/react-native-web/src/exports/StyleSheet/compiler/normalizeValueWithProperty.js#L13
  */
 const colorProperties = new Set<string>([
   "backgroundColor",
