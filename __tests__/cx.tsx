@@ -4,7 +4,7 @@ import { render } from "vitest-browser-react";
 import { css, cx } from "../src";
 
 test("cx concatenates atomic classes", () => {
-  const sheet = css.make({
+  const sheet = css({
     foo: {
       backgroundColor: "red",
       color: "blue",
@@ -23,7 +23,7 @@ test("cx concatenates atomic classes", () => {
 });
 
 test("cx allows one reset style", async () => {
-  const sheet = css.make({
+  const sheet = css({
     $foo: {
       backgroundColor: "red",
       color: "blue",
@@ -55,7 +55,7 @@ test("cx allows one reset style", async () => {
 });
 
 test("cx allows external classes", async () => {
-  const sheet = css.make({
+  const sheet = css({
     foo: { lineClamp: 1 },
     bar: { lineClamp: 2 },
   });

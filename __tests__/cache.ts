@@ -3,7 +3,7 @@ import { css } from "../src";
 import { getSheets } from "./utils";
 
 test("cache don't insert identical property + value pairs", () => {
-  css.make({
+  css({
     foo: {
       color: "red",
       ":hover": { color: "green" },

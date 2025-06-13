@@ -3,7 +3,7 @@ import { css } from "../src";
 import { getSheets } from "./utils";
 
 test("longhands properties are expanded", () => {
-  const sheet = css.make({
+  const sheet = css({
     box: {
       backgroundPosition: "top",
       borderColor: "red",

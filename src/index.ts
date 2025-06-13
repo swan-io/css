@@ -9,23 +9,34 @@ import { forEach } from "./utils";
 
 const sheet = createSheet();
 
-const keyframes = (keyframes: Keyframes): string | undefined =>
-  sheet.insertKeyframes(preprocessKeyframes(keyframes));
+const utils = {
+  keyframes: (keyframes: Keyframes): string | undefined =>
+    sheet.insertKeyframes(preprocessKeyframes(keyframes)),
+};
 
-const make = <K extends string>(
-  styles: Record<K, Nestable<Style>>,
+type Utils = typeof utils;
+
+export const css = <K extends string>(
+  styles:
+    | Record<K, Nestable<Style>>
+    | ((
+        theme: Record<string, string>,
+        utils: Utils,
+      ) => Record<K, Nestable<Style>>),
 ): Record<K, string> => {
   const output = {} as Record<K, string>;
 
-  forEach(styles, (key, value) => {
-    output[key] =
-      key[0] === "$"
-        ? sheet.insertResetRule(preprocessResetStyle(value))
-        : sheet.insertAtomicRules(preprocessAtomicStyle(value));
-  });
+  forEach(
+    typeof styles === "function" ? styles({}, utils) : styles,
+    (key, value) => {
+      output[key] =
+        key[0] === "$"
+          ? sheet.insertResetRule(preprocessResetStyle(value))
+          : sheet.insertAtomicRules(preprocessAtomicStyle(value));
+    },
+  );
 
   return output;
 };
 
-export const css = { keyframes, make };
 export const cx = sheet.cx;
