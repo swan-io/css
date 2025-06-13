@@ -14,7 +14,9 @@ const getSheet = (id: string): CSSStyleSheet | null => {
     return null;
   }
 
-  const current = document.querySelector<HTMLStyleElement>(`style[id="${id}"]`);
+  const current =
+    document.querySelector<HTMLLinkElement>(`link[id="${id}"]`) ??
+    document.querySelector<HTMLStyleElement>(`style[id="${id}"]`);
 
   if (current != null) {
     return current.sheet;
@@ -33,12 +35,23 @@ const getMediaRule = (
   media: string,
 ): {
   cssRules: CSSRuleList | [];
+  toString: () => string;
   insertRule: (rule: string) => void;
 } => {
+  const cssRules = new Set<string>();
+
+  const toString = () =>
+    cssRules.size > 0
+      ? `@media ${media}{${[...cssRules].join("")}}`
+      : `@media ${media}{}`; // Keep an empty media sheet to preserve the index (hydratation)
+
   if (sheet == null) {
     return {
       cssRules: [],
-      insertRule: () => {},
+      toString,
+      insertRule: (rule) => {
+        cssRules.add(rule);
+      },
     };
   }
 
@@ -52,7 +65,10 @@ const getMediaRule = (
 
       return {
         cssRules: [],
-        insertRule: () => {},
+        toString,
+        insertRule: (rule) => {
+          cssRules.add(rule);
+        },
       };
     }
   }
@@ -61,9 +77,11 @@ const getMediaRule = (
 
   return {
     cssRules: mediaRule.cssRules,
+    toString,
     insertRule: (rule) => {
       try {
         mediaRule.insertRule(rule, mediaRule.cssRules.length);
+        cssRules.add(rule);
       } catch (error) {
         if (process.env.NODE_ENV === "development") {
           console.error(error);
@@ -278,19 +296,28 @@ export const createSheet = () => {
     return classNames;
   };
 
-  const input: Input = {
+  const _input: Input = {
     keyframes: (keyframes) => insertKeyframes(preprocessKeyframes(keyframes)),
   };
 
   return {
+    input: _input,
     css: {
+      extend: <const T extends Record<string, unknown>>(input: T) => {
+        forEach(input, (key, value) => {
+          // @ts-expect-error keep initial object instance reference
+          _input[key] = value;
+        });
+
+        return input;
+      },
       make: <K extends string>(
         styles: Record<K, Style> | ((input: Input) => Record<K, Style>),
       ): Record<K, string> => {
         const output = {} as Record<K, string>;
 
         forEach(
-          typeof styles === "function" ? styles(input) : styles,
+          typeof styles === "function" ? styles(_input) : styles,
           (key, value) => {
             output[key] =
               key[0] === "$"
@@ -368,5 +395,14 @@ export const createSheet = () => {
 
       return output;
     },
+    toString: () =>
+      [
+        keyframesSheet.toString(),
+        resetSheet.toString(),
+        atomicSheet.toString(),
+        hoverSheet.toString(),
+        focusSheet.toString(),
+        activeSheet.toString(),
+      ].join("\n"),
   };
 };
