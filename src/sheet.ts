@@ -1,6 +1,11 @@
 import { hash } from "./hash";
 import { hyphenateName } from "./hyphenateName";
 import { normalizeValue } from "./normalizeValue";
+import {
+  preprocessAtomicStyle,
+  preprocessKeyframes,
+  preprocessResetStyle,
+} from "./preprocess";
 import type { ClassNames, Keyframes, Nestable, Style } from "./types";
 import { forEach } from "./utils";
 
@@ -35,8 +40,11 @@ const getMediaRule = (
 } => {
   const rules = new Set<string>();
 
-  const insertRule = (rule: string) => rules.add(rule);
+  const insertRule = (rule: string) => {
+    rules.add(rule);
+  };
 
+  // TODO: minify
   const toString = () =>
     rules.size > 0
       ? `@media ${media} {
@@ -60,15 +68,14 @@ ${[...rules].map((line) => `  ${line}`).join("\n")}
 
   try {
     sheet.insertRule(`@media ${media} {}`, index);
-    const subSheet = sheet.cssRules[index] as CSSMediaRule;
+    const mediaRule = sheet.cssRules[index] as CSSMediaRule;
 
     return {
-      cssRules: subSheet.cssRules,
+      cssRules: mediaRule.cssRules,
       toString,
-
       insertRule: (rule: string) => {
         try {
-          subSheet.insertRule(rule, subSheet.cssRules.length);
+          mediaRule.insertRule(rule, mediaRule.cssRules.length);
         } catch (error) {
           if (process.env.NODE_ENV === "development") {
             console.error(error);
@@ -301,6 +308,36 @@ export const createSheet = () => {
     return classNames;
   };
 
+  const utils = {
+    keyframes: (keyframes: Keyframes): string | undefined =>
+      insertKeyframes(preprocessKeyframes(keyframes)),
+  };
+
+  type Utils = typeof utils;
+
+  const css = <K extends string>(
+    styles:
+      | Record<K, Nestable<Style>>
+      | ((
+          theme: Record<string, string>,
+          utils: Utils,
+        ) => Record<K, Nestable<Style>>),
+  ): Record<K, string> => {
+    const output = {} as Record<K, string>;
+
+    forEach(
+      typeof styles === "function" ? styles({}, utils) : styles,
+      (key, value) => {
+        output[key] =
+          key[0] === "$"
+            ? insertResetRule(preprocessResetStyle(value))
+            : insertAtomicRules(preprocessAtomicStyle(value));
+      },
+    );
+
+    return output;
+  };
+
   const cx = (...items: ClassNames): string => {
     const classNames = extractClassNames(items, []);
 
@@ -378,13 +415,5 @@ export const createSheet = () => {
       activeSheet.toString(),
     ].join("\n");
 
-  return {
-    insertKeyframes,
-    insertResetRule,
-    insertAtomicRules,
-
-    cx,
-
-    toString,
-  };
+  return { utils, css, cx, toString };
 };

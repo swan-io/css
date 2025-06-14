@@ -2,41 +2,13 @@ import MagicString from "magic-string";
 import { createHash } from "node:crypto";
 import { parseAndWalk } from "oxc-walker";
 import type { Plugin } from "vite";
-import {
-  preprocessAtomicStyle,
-  preprocessKeyframes,
-  preprocessResetStyle,
-} from "../../src/preprocess";
 import { createSheet } from "../../src/sheet";
-import type { Keyframes, Nestable, Style } from "../../src/types";
-import { forEach } from "../../src/utils";
 
 export const plugin = (): Plugin => {
   const packageName = "@swan-io/css";
   const sheet = createSheet();
 
   let fileName = "";
-
-  // TODO: don't copy those two functions here
-  const utils = {
-    keyframes: (keyframes: Keyframes): string | undefined =>
-      sheet.insertKeyframes(preprocessKeyframes(keyframes)),
-  };
-
-  const css = <K extends string>(
-    styles: Record<K, Nestable<Style>>,
-  ): Record<K, string> => {
-    const output = {} as Record<K, string>;
-
-    forEach(styles, (key, value) => {
-      output[key] =
-        key[0] === "$"
-          ? sheet.insertResetRule(preprocessResetStyle(value))
-          : sheet.insertAtomicRules(preprocessAtomicStyle(value));
-    });
-
-    return output;
-  };
 
   return {
     name: packageName,
@@ -51,15 +23,15 @@ export const plugin = (): Plugin => {
           node.type === "ImportDeclaration" &&
           node.source.value === packageName // TODO: add an option or read the alias
         ) {
-          const css = node.specifiers.find(
+          const specifier = node.specifiers.find(
             (specifier) =>
               specifier.type === "ImportSpecifier" &&
               specifier.imported.type === "Identifier" &&
               specifier.imported.name === "css",
           );
 
-          if (css != null) {
-            importName = css.local.name;
+          if (specifier != null) {
+            importName = specifier.local.name;
           }
         }
 
@@ -72,7 +44,7 @@ export const plugin = (): Plugin => {
           const fn = node.arguments.at(0);
 
           if (fn != null && fn.type === "ObjectExpression") {
-            const result = css(
+            const result = sheet.css(
               new Function(`return ${magicString.slice(fn.start, fn.end)};`)(),
             );
 
@@ -89,12 +61,12 @@ export const plugin = (): Plugin => {
             // TODO: pass theme
             const theme = {};
 
-            const result = css(
+            const result = sheet.css(
               new Function(
                 "theme",
                 "utils",
                 `return (${magicString.slice(fn.start, fn.end)})(theme, utils);`,
-              )(theme, utils),
+              )(theme, sheet.utils),
             );
 
             magicString.overwrite(
