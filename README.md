@@ -19,7 +19,7 @@ $ npm install --save @swan-io/css
 ```tsx
 import { css, cx } from "@swan-io/css";
 
-const sheet = css.make({
+const sheet = css({
   box: {
     backgroundColor: "blue",
     padding: 16,
@@ -45,12 +45,12 @@ const Component = ({ large }: { large: boolean }) => (
 
 ## API
 
-### css.make
+### css
 
 Create a new sheet object and inject the associated styles.
 
 ```tsx
-const sheet = css.make({
+const sheet = css({
   box: {
     backgroundColor: "hotpink",
     paddingHorizontal: 16,
@@ -69,7 +69,7 @@ console.log(sheet.box); // a string list of generated classes
 > Styles prefixed with `$` will be inserted as non-atomic CSS-in-JS, which is particularly useful for resetting the styles of an HTML element.
 
 ```tsx
-const sheet = css.make({
+const sheet = css({
   // generates a single class, inserted before the rest
   $reset: {
     margin: 0,
@@ -88,7 +88,7 @@ const sheet = css.make({
 Inject a keyframes rule and generate a unique name for it.
 
 ```tsx
-const sheet = css.make({
+const sheet = css({
   box: {
     animationDuration: "300ms",
     animationName: css.keyframes({
@@ -104,7 +104,7 @@ const sheet = css.make({
 Concatenate the generated classes from left to right, with subsequent styles overwriting the property values of earlier ones.
 
 ```tsx
-const sheet = css.make({
+const sheet = css({
   box: {
     display: "flex",
     color: "red",

@@ -1,11 +1,22 @@
 import { hash } from "./hash";
 import { hyphenateName } from "./hyphenateName";
 import { normalizeValue } from "./normalizeValue";
+import {
+  preprocessAtomicStyle,
+  preprocessKeyframes,
+  preprocessResetStyle,
+} from "./preprocess";
 import type { ClassNames, Keyframes, Nestable, Style } from "./types";
 import { forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
-  const current = document.querySelector<HTMLStyleElement>(`style[id="${id}"]`);
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const current =
+    document.querySelector<HTMLLinkElement>(`link[id="${id}"]`) ??
+    document.querySelector<HTMLStyleElement>(`style[id="${id}"]`);
 
   if (current != null) {
     return current.sheet;
@@ -22,34 +33,62 @@ const getMediaRule = (
   sheet: CSSStyleSheet | null,
   index: number,
   media: string,
-): CSSMediaRule | undefined => {
+): {
+  cssRules?: CSSRuleList;
+  insertRule: (rule: string) => void;
+  toString: () => string;
+} => {
+  const rules = new Set<string>();
+
+  const insertRule = (rule: string) => {
+    rules.add(rule);
+  };
+
+  // TODO: minify
+  const toString = () =>
+    rules.size > 0
+      ? `@media ${media} {
+${[...rules].map((line) => `  ${line}`).join("\n")}
+}`
+      : `@media ${media} {}`; // Keep an empty media sheet to preserve the index (hydratation)
+
   if (sheet == null) {
-    return;
+    return { insertRule, toString };
   }
 
-  const current = sheet.cssRules[index];
+  const current = sheet.cssRules[index] as CSSMediaRule | undefined;
 
   if (current != null) {
-    return current as CSSMediaRule;
+    return {
+      cssRules: current.cssRules,
+      insertRule,
+      toString,
+    };
   }
 
   try {
     sheet.insertRule(`@media ${media} {}`, index);
-    return sheet.cssRules[index] as CSSMediaRule;
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(error);
-    }
-  }
-};
+    const mediaRule = sheet.cssRules[index] as CSSMediaRule;
 
-const insertRule = (sheet: CSSMediaRule, rule: string): void => {
-  try {
-    sheet.insertRule(rule, sheet.cssRules.length);
+    return {
+      cssRules: mediaRule.cssRules,
+      toString,
+      insertRule: (rule: string) => {
+        try {
+          mediaRule.insertRule(rule, mediaRule.cssRules.length);
+        } catch (error) {
+          if (process.env.NODE_ENV === "development") {
+            console.error(error);
+          }
+        }
+      },
+    };
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error(error);
     }
+
+    return { insertRule, toString };
   }
 };
 
@@ -120,7 +159,7 @@ export const createSheet = () => {
   const activeClassNames = new Map<string, string | undefined>();
 
   // Rehydrate keyframes sheet
-  if (keyframesSheet != null) {
+  if (keyframesSheet.cssRules != null) {
     for (const rule of keyframesSheet.cssRules) {
       if (rule instanceof CSSKeyframesRule) {
         keyframesNames.add(rule.name);
@@ -129,7 +168,7 @@ export const createSheet = () => {
   }
 
   // Rehydrate reset sheet
-  if (resetSheet != null) {
+  if (resetSheet.cssRules != null) {
     for (const rule of resetSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
         resetClassNames.add(getClassName(rule));
@@ -138,7 +177,7 @@ export const createSheet = () => {
   }
 
   // Rehydrate atomic sheet
-  if (atomicSheet != null) {
+  if (atomicSheet.cssRules != null) {
     for (const rule of atomicSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
         atomicClassNames.set(getClassName(rule), rule.style[0]);
@@ -147,7 +186,7 @@ export const createSheet = () => {
   }
 
   // Rehydrate hover sheet
-  if (hoverSheet != null) {
+  if (hoverSheet.cssRules != null) {
     for (const rule of hoverSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
         hoverClassNames.set(getClassName(rule), rule.style[0]);
@@ -156,7 +195,7 @@ export const createSheet = () => {
   }
 
   // Rehydrate focus sheet
-  if (focusSheet != null) {
+  if (focusSheet.cssRules != null) {
     for (const rule of focusSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
         focusClassNames.set(getClassName(rule), rule.style[0]);
@@ -165,7 +204,7 @@ export const createSheet = () => {
   }
 
   // Rehydrate active sheet
-  if (activeSheet != null) {
+  if (activeSheet.cssRules != null) {
     for (const rule of activeSheet.cssRules) {
       if (rule instanceof CSSStyleRule) {
         activeClassNames.set(getClassName(rule), rule.style[0]);
@@ -174,10 +213,6 @@ export const createSheet = () => {
   }
 
   const insertKeyframes = (keyframes: Keyframes): string | undefined => {
-    if (keyframesSheet == null) {
-      return;
-    }
-
     let body = "";
 
     forEach(keyframes, (key, value) => {
@@ -193,7 +228,7 @@ export const createSheet = () => {
     const name = "k-" + hash(body);
 
     if (!keyframesNames.has(name)) {
-      insertRule(keyframesSheet, `@keyframes ${name} { ${body} }`);
+      keyframesSheet.insertRule(`@keyframes ${name} { ${body} }`);
       keyframesNames.add(name);
     }
 
@@ -201,10 +236,6 @@ export const createSheet = () => {
   };
 
   const insertResetRule = (style: Style): string => {
-    if (resetSheet == null) {
-      return "";
-    }
-
     let rules = "";
 
     forEach(style, (key, value) => {
@@ -214,7 +245,7 @@ export const createSheet = () => {
     const className = "r-" + hash(rules);
 
     if (!resetClassNames.has(className)) {
-      insertRule(resetSheet, `.${className} { ${rules} }`);
+      resetSheet.insertRule(`.${className} { ${rules} }`);
       resetClassNames.add(className);
     }
 
@@ -224,15 +255,6 @@ export const createSheet = () => {
   const insertAtomicRules = (style: Nestable<Style>): string => {
     let classNames = "";
 
-    if (
-      atomicSheet == null ||
-      hoverSheet == null ||
-      focusSheet == null ||
-      activeSheet == null
-    ) {
-      return classNames;
-    }
-
     forEach(style, (key, value) => {
       if (key === ":hover") {
         forEach(value as Style, (key, value) => {
@@ -240,7 +262,7 @@ export const createSheet = () => {
           const className = "h-" + hash(rule);
 
           if (!hoverClassNames.has(className)) {
-            insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
+            hoverSheet.insertRule(`.${className}:hover { ${rule} }`);
             hoverClassNames.set(className, key);
           }
 
@@ -252,7 +274,7 @@ export const createSheet = () => {
           const className = "f-" + hash(rule);
 
           if (!focusClassNames.has(className)) {
-            insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
+            focusSheet.insertRule(`.${className}:focus-visible { ${rule} }`);
             focusClassNames.set(className, key);
           }
 
@@ -264,7 +286,7 @@ export const createSheet = () => {
           const className = "a-" + hash(rule);
 
           if (!activeClassNames.has(className)) {
-            insertRule(activeSheet, `.${className}:active { ${rule} }`);
+            activeSheet.insertRule(`.${className}:active { ${rule} }`);
             activeClassNames.set(className, key);
           }
 
@@ -275,7 +297,7 @@ export const createSheet = () => {
         const className = "x-" + hash(rule);
 
         if (!atomicClassNames.has(className)) {
-          insertRule(atomicSheet, `.${className} { ${rule} }`);
+          atomicSheet.insertRule(`.${className} { ${rule} }`);
           atomicClassNames.set(className, key);
         }
 
@@ -284,6 +306,36 @@ export const createSheet = () => {
     });
 
     return classNames;
+  };
+
+  const utils = {
+    keyframes: (keyframes: Keyframes): string | undefined =>
+      insertKeyframes(preprocessKeyframes(keyframes)),
+  };
+
+  type Utils = typeof utils;
+
+  const css = <K extends string>(
+    styles:
+      | Record<K, Nestable<Style>>
+      | ((
+          theme: Record<string, string>,
+          utils: Utils,
+        ) => Record<K, Nestable<Style>>),
+  ): Record<K, string> => {
+    const output = {} as Record<K, string>;
+
+    forEach(
+      typeof styles === "function" ? styles({}, utils) : styles,
+      (key, value) => {
+        output[key] =
+          key[0] === "$"
+            ? insertResetRule(preprocessResetStyle(value))
+            : insertAtomicRules(preprocessAtomicStyle(value));
+      },
+    );
+
+    return output;
   };
 
   const cx = (...items: ClassNames): string => {
@@ -353,11 +405,15 @@ export const createSheet = () => {
     return output;
   };
 
-  return {
-    insertKeyframes,
-    insertResetRule,
-    insertAtomicRules,
+  const toString = () =>
+    [
+      keyframesSheet.toString(),
+      resetSheet.toString(),
+      atomicSheet.toString(),
+      hoverSheet.toString(),
+      focusSheet.toString(),
+      activeSheet.toString(),
+    ].join("\n");
 
-    cx,
-  };
+  return { utils, css, cx, toString };
 };
