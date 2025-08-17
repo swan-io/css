@@ -37,22 +37,22 @@ test("cache don't insert identical property + value pairs", () => {
   expect(active.rules).toHaveLength(1);
 
   expect(reset.rules.join("\n")).toMatchInlineSnapshot(
-    `".r-1je9j89 { margin: 0px; padding: 0px; }"`,
+    `".r-exbvf9 { margin: 0px; padding: 0px; }"`,
   );
 
   expect(atomic.rules.join("\n")).toMatchInlineSnapshot(
-    `".x-dztn2i { color: rgb(255, 0, 0); }"`,
+    `".x-eu7krx { color: rgb(255, 0, 0); }"`,
   );
 
   expect(hover.rules.join("\n")).toMatchInlineSnapshot(
-    `".h-a4kfub:hover { color: rgb(0, 128, 0); }"`,
+    `".h-1yatgts:hover { color: rgb(0, 128, 0); }"`,
   );
 
   expect(focus.rules.join("\n")).toMatchInlineSnapshot(
-    `".f-9faglj:focus-visible { color: rgb(0, 0, 255); }"`,
+    `".f-1jziecw:focus-visible { color: rgb(0, 0, 255); }"`,
   );
 
   expect(active.rules.join("\n")).toMatchInlineSnapshot(
-    `".a-45si6m:active { color: rgb(102, 51, 153); }"`,
+    `".a-lsxzvj:active { color: rgb(102, 51, 153); }"`,
   );
 });

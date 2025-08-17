@@ -43,29 +43,29 @@ test("sheet create and use different subsheets", async () => {
   expect(active.rules).toHaveLength(1);
 
   expect(keyframes.rules.join("\n")).toMatchInlineSnapshot(
-    `"@keyframes k-1mf61dn { 0% { opacity: 0; } 100% { opacity: 1; } }"`,
+    `"@keyframes k-m6pt8e { 0% { opacity: 0; } 100% { opacity: 1; } }"`,
   );
 
   expect(reset.rules.join("\n")).toMatchInlineSnapshot(
-    `".r-1wfww0e { display: flex; width: 100px; height: 100px; }"`,
+    `".r-1ajf6gu { display: flex; width: 100px; height: 100px; }"`,
   );
 
   expect(atomic.rules.join("\n")).toMatchInlineSnapshot(`
-    ".x-brsnw3 { animation-duration: 200ms; }
-    .x-1pz2alh { background-color: rgb(255, 255, 255); }
-    .x-dztn2i { color: rgb(255, 0, 0); }
-    .x-j8yzpo { animation-name: k-1mf61dn; }"
+    ".x-1xx744s { animation-duration: 200ms; }
+    .x-1k9ek97 { background-color: rgb(255, 255, 255); }
+    .x-eu7krx { color: rgb(255, 0, 0); }
+    .x-11r12vs { animation-name: k-m6pt8e; }"
   `);
 
   expect(hover.rules.join("\n")).toMatchInlineSnapshot(
-    `".h-a4kfub:hover { color: rgb(0, 128, 0); }"`,
+    `".h-1yatgts:hover { color: rgb(0, 128, 0); }"`,
   );
 
   expect(focus.rules.join("\n")).toMatchInlineSnapshot(
-    `".f-9faglj:focus-visible { color: rgb(0, 0, 255); }"`,
+    `".f-1jziecw:focus-visible { color: rgb(0, 0, 255); }"`,
   );
 
   expect(active.rules.join("\n")).toMatchInlineSnapshot(
-    `".a-45si6m:active { color: rgb(102, 51, 153); }"`,
+    `".a-lsxzvj:active { color: rgb(102, 51, 153); }"`,
   );
 });

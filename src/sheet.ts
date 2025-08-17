@@ -55,13 +55,13 @@ const insertRule = (sheet: CSSMediaRule, rule: string): void => {
 
 const stringifyRule = (key: string, value: string | number): string => {
   if (key === "appearance") {
-    return `-webkit-appearance: ${value}; appearance: ${value};`;
+    return `-webkit-appearance:${value};appearance:${value};`;
   }
   if (key === "lineClamp") {
-    return `-webkit-line-clamp: ${value}; line-clamp: ${value};`;
+    return `-webkit-line-clamp:${value};line-clamp:${value};`;
   }
 
-  return `${hyphenateName(key)}: ${normalizeValue(key, value)};`;
+  return `${hyphenateName(key)}:${normalizeValue(key, value)};`;
 };
 
 const extractClassNames = (items: ClassNames, acc: string[]): string[] => {
@@ -108,7 +108,7 @@ export const createSheet = () => {
   const keyframesSheet = getMediaRule(sheet, 0, "all");
   const resetSheet = getMediaRule(sheet, 1, "all");
   const atomicSheet = getMediaRule(sheet, 2, "all");
-  const hoverSheet = getMediaRule(sheet, 3, "(hover: hover)");
+  const hoverSheet = getMediaRule(sheet, 3, "(hover:hover)");
   const focusSheet = getMediaRule(sheet, 4, "all");
   const activeSheet = getMediaRule(sheet, 5, "all");
 
@@ -187,13 +187,13 @@ export const createSheet = () => {
         rules = appendString(rules, stringifyRule(key, value));
       });
 
-      body = appendString(body, `${key} { ${rules} }`);
+      body = appendString(body, `${key}{${rules}}`);
     });
 
     const name = "k-" + hash(body);
 
     if (!keyframesNames.has(name)) {
-      insertRule(keyframesSheet, `@keyframes ${name} { ${body} }`);
+      insertRule(keyframesSheet, `@keyframes ${name}{${body}}`);
       keyframesNames.add(name);
     }
 
@@ -214,7 +214,7 @@ export const createSheet = () => {
     const className = "r-" + hash(rules);
 
     if (!resetClassNames.has(className)) {
-      insertRule(resetSheet, `.${className} { ${rules} }`);
+      insertRule(resetSheet, `.${className}{${rules}}`);
       resetClassNames.add(className);
     }
 
@@ -240,7 +240,7 @@ export const createSheet = () => {
           const className = "h-" + hash(rule);
 
           if (!hoverClassNames.has(className)) {
-            insertRule(hoverSheet, `.${className}:hover { ${rule} }`);
+            insertRule(hoverSheet, `.${className}:hover{${rule}}`);
             hoverClassNames.set(className, key);
           }
 
@@ -252,7 +252,7 @@ export const createSheet = () => {
           const className = "f-" + hash(rule);
 
           if (!focusClassNames.has(className)) {
-            insertRule(focusSheet, `.${className}:focus-visible { ${rule} }`);
+            insertRule(focusSheet, `.${className}:focus-visible{${rule}}`);
             focusClassNames.set(className, key);
           }
 
@@ -264,7 +264,7 @@ export const createSheet = () => {
           const className = "a-" + hash(rule);
 
           if (!activeClassNames.has(className)) {
-            insertRule(activeSheet, `.${className}:active { ${rule} }`);
+            insertRule(activeSheet, `.${className}:active{${rule}}`);
             activeClassNames.set(className, key);
           }
 
@@ -275,7 +275,7 @@ export const createSheet = () => {
         const className = "x-" + hash(rule);
 
         if (!atomicClassNames.has(className)) {
-          insertRule(atomicSheet, `.${className} { ${rule} }`);
+          insertRule(atomicSheet, `.${className}{${rule}}`);
           atomicClassNames.set(className, key);
         }
 
