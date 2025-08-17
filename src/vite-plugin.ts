@@ -47,6 +47,14 @@ const isCssMethodNode = (
   node.property.type === "Identifier" &&
   node.property.name === methodName;
 
+const normalizeRoot = (root: string, configFile: string | undefined) =>
+  path.isAbsolute(root)
+    ? root
+    : path.resolve(
+        configFile != null ? path.dirname(configFile) : process.cwd(),
+        root,
+      );
+
 const normalizeInput = (
   input: string | string[] | Record<string, string>,
 ): string[] =>
@@ -55,14 +63,6 @@ const normalizeInput = (
     : Array.isArray(input)
       ? input
       : Object.values(input);
-
-const normalizeRoot = (root: string, configFile: string | undefined) =>
-  path.isAbsolute(root)
-    ? root
-    : path.resolve(
-        configFile != null ? path.dirname(configFile) : process.cwd(),
-        root,
-      );
 
 // TODO: do nothing if it's SSR build, only client build
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
@@ -389,8 +389,6 @@ var caches = {
         }
       });
 
-      // TODO: if there's ANY import, replace them all with empty string
-      // if there's ANY cx import, replace it on top
       if (cssImportName !== "" || isCxImported) {
         return {
           code: magicString.toString(),
