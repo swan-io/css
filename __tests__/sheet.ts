@@ -43,29 +43,29 @@ test("sheet create and use different subsheets", async () => {
   expect(active.rules).toHaveLength(1);
 
   expect(keyframes.rules.join("\n")).toMatchInlineSnapshot(
-    `"@keyframes k-m6pt8e { 0% { opacity: 0; } 100% { opacity: 1; } }"`,
+    `"@keyframes k-g03ymi { 0% { opacity: 0; } 100% { opacity: 1; } }"`,
   );
 
   expect(reset.rules.join("\n")).toMatchInlineSnapshot(
-    `".r-1ajf6gu { display: flex; width: 100px; height: 100px; }"`,
+    `".r-1lz55j3 { display: flex; width: 100px; height: 100px; }"`,
   );
 
   expect(atomic.rules.join("\n")).toMatchInlineSnapshot(`
-    ".x-1xx744s { animation-duration: 200ms; }
-    .x-1k9ek97 { background-color: rgb(255, 255, 255); }
-    .x-eu7krx { color: rgb(255, 0, 0); }
-    .x-11r12vs { animation-name: k-m6pt8e; }"
+    ".x-dor4jq { animation-duration: 200ms; }
+    .x-dfjll8 { background-color: rgb(255, 255, 255); }
+    .x-16n2zqk { color: rgb(255, 0, 0); }
+    .x-rtk404 { animation-name: k-g03ymi; }"
   `);
 
   expect(hover.rules.join("\n")).toMatchInlineSnapshot(
-    `".h-1yatgts:hover { color: rgb(0, 128, 0); }"`,
+    `".h-14zmu5o:hover { color: rgb(0, 128, 0); }"`,
   );
 
   expect(focus.rules.join("\n")).toMatchInlineSnapshot(
-    `".f-1jziecw:focus-visible { color: rgb(0, 0, 255); }"`,
+    `".f-1szktvb:focus-visible { color: rgb(0, 0, 255); }"`,
   );
 
   expect(active.rules.join("\n")).toMatchInlineSnapshot(
-    `".a-lsxzvj:active { color: rgb(102, 51, 153); }"`,
+    `".a-a2elq4:active { color: rgb(102, 51, 153); }"`,
   );
 });

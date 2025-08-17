@@ -5,6 +5,10 @@ import type { ClassNames, FlatStyle, Keyframes, Style } from "./types";
 import { forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
   const current = document.querySelector<HTMLStyleElement>(`style[id="${id}"]`);
 
   if (current != null) {
@@ -22,46 +26,57 @@ const getMediaRule = (
   sheet: CSSStyleSheet | null,
   index: number,
   media: string,
-): CSSMediaRule | undefined => {
+): {
+  cssRules: CSSRuleList | [];
+  insertRule: (rule: string) => void;
+} => {
   if (sheet == null) {
-    return;
+    return {
+      cssRules: [],
+      insertRule: () => {},
+    };
   }
 
-  const current = sheet.cssRules[index];
+  if (sheet.cssRules[index] == null) {
+    try {
+      sheet.insertRule(`@media ${media}{}`, index);
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error(error);
+      }
 
-  if (current != null) {
-    return current as CSSMediaRule;
-  }
-
-  try {
-    sheet.insertRule(`@media ${media} {}`, index);
-    return sheet.cssRules[index] as CSSMediaRule;
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(error);
+      return {
+        cssRules: [],
+        insertRule: () => {},
+      };
     }
   }
-};
 
-const insertRule = (sheet: CSSMediaRule, rule: string): void => {
-  try {
-    sheet.insertRule(rule, sheet.cssRules.length);
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(error);
-    }
-  }
+  const mediaRule = sheet.cssRules[index] as CSSMediaRule;
+
+  return {
+    cssRules: mediaRule.cssRules,
+    insertRule: (rule) => {
+      try {
+        mediaRule.insertRule(rule, mediaRule.cssRules.length);
+      } catch (error) {
+        if (process.env.NODE_ENV === "development") {
+          console.error(error);
+        }
+      }
+    },
+  };
 };
 
 const stringifyRule = (key: string, value: string | number): string => {
   if (key === "appearance") {
-    return `-webkit-appearance:${value};appearance:${value};`;
+    return `-webkit-appearance:${value};appearance:${value}`;
   }
   if (key === "lineClamp") {
-    return `-webkit-line-clamp:${value};line-clamp:${value};`;
+    return `-webkit-line-clamp:${value};line-clamp:${value}`;
   }
 
-  return `${hyphenateName(key)}:${normalizeValue(key, value)};`;
+  return `${hyphenateName(key)}:${normalizeValue(key, value)}`;
 };
 
 const extractClassNames = (items: ClassNames, acc: string[]): string[] => {
@@ -120,80 +135,65 @@ export const createSheet = () => {
   const activeClassNames = new Map<string, string | undefined>();
 
   // Rehydrate keyframes sheet
-  if (keyframesSheet != null) {
-    for (const rule of keyframesSheet.cssRules) {
-      if (rule instanceof CSSKeyframesRule) {
-        keyframesNames.add(rule.name);
-      }
+
+  for (const rule of keyframesSheet.cssRules) {
+    if (rule instanceof CSSKeyframesRule) {
+      keyframesNames.add(rule.name);
     }
   }
 
   // Rehydrate reset sheet
-  if (resetSheet != null) {
-    for (const rule of resetSheet.cssRules) {
-      if (rule instanceof CSSStyleRule) {
-        resetClassNames.add(getClassName(rule));
-      }
+  for (const rule of resetSheet.cssRules) {
+    if (rule instanceof CSSStyleRule) {
+      resetClassNames.add(getClassName(rule));
     }
   }
 
   // Rehydrate atomic sheet
-  if (atomicSheet != null) {
-    for (const rule of atomicSheet.cssRules) {
-      if (rule instanceof CSSStyleRule) {
-        atomicClassNames.set(getClassName(rule), rule.style[0]);
-      }
+  for (const rule of atomicSheet.cssRules) {
+    if (rule instanceof CSSStyleRule) {
+      atomicClassNames.set(getClassName(rule), rule.style[0]);
     }
   }
 
   // Rehydrate hover sheet
-  if (hoverSheet != null) {
-    for (const rule of hoverSheet.cssRules) {
-      if (rule instanceof CSSStyleRule) {
-        hoverClassNames.set(getClassName(rule), rule.style[0]);
-      }
+  for (const rule of hoverSheet.cssRules) {
+    if (rule instanceof CSSStyleRule) {
+      hoverClassNames.set(getClassName(rule), rule.style[0]);
     }
   }
 
   // Rehydrate focus sheet
-  if (focusSheet != null) {
-    for (const rule of focusSheet.cssRules) {
-      if (rule instanceof CSSStyleRule) {
-        focusClassNames.set(getClassName(rule), rule.style[0]);
-      }
+  for (const rule of focusSheet.cssRules) {
+    if (rule instanceof CSSStyleRule) {
+      focusClassNames.set(getClassName(rule), rule.style[0]);
     }
   }
 
   // Rehydrate active sheet
-  if (activeSheet != null) {
-    for (const rule of activeSheet.cssRules) {
-      if (rule instanceof CSSStyleRule) {
-        activeClassNames.set(getClassName(rule), rule.style[0]);
-      }
+  for (const rule of activeSheet.cssRules) {
+    if (rule instanceof CSSStyleRule) {
+      activeClassNames.set(getClassName(rule), rule.style[0]);
     }
   }
 
   const insertKeyframes = (keyframes: Keyframes): string | undefined => {
-    if (keyframesSheet == null) {
-      return;
-    }
-
     let body = "";
 
     forEach(keyframes, (key, value) => {
-      let rules = "";
+      const rules: string[] = [];
 
       forEach(value, (key, value) => {
-        rules = appendString(rules, stringifyRule(key, value));
+        rules.push(stringifyRule(key, value));
       });
 
-      body = appendString(body, `${key}{${rules}}`);
+      body += `${key}{${rules.join(";")}}`;
     });
 
     const name = "k-" + hash(body);
 
     if (!keyframesNames.has(name)) {
-      insertRule(keyframesSheet, `@keyframes ${name}{${body}}`);
+      keyframesSheet.insertRule(`@keyframes ${name}{${body}}`);
       keyframesNames.add(name);
     }
 
@@ -201,20 +201,17 @@ export const createSheet = () => {
   };
 
   const insertResetRule = (style: FlatStyle): string => {
-    if (resetSheet == null) {
-      return "";
-    }
-
-    let rules = "";
+    const rules: string[] = [];
 
     forEach(style, (key, value) => {
-      rules = appendString(rules, stringifyRule(key, value));
+      rules.push(stringifyRule(key, value));
     });
 
-    const className = "r-" + hash(rules);
+    const body = rules.join(";");
+    const className = "r-" + hash(body);
 
     if (!resetClassNames.has(className)) {
-      insertRule(resetSheet, `.${className}{${rules}}`);
+      resetSheet.insertRule(`.${className}{${body}}`);
       resetClassNames.add(className);
     }
 
@@ -224,15 +221,6 @@ export const createSheet = () => {
   const insertAtomicRules = (style: Style): string => {
     let classNames = "";
 
-    if (
-      atomicSheet == null ||
-      hoverSheet == null ||
-      focusSheet == null ||
-      activeSheet == null
-    ) {
-      return classNames;
-    }
-
     forEach(style, (key, value) => {
       if (key === ":hover") {
         forEach(value as FlatStyle, (key, value) => {
@@ -240,7 +228,7 @@ export const createSheet = () => {
           const className = "h-" + hash(rule);
 
           if (!hoverClassNames.has(className)) {
-            insertRule(hoverSheet, `.${className}:hover{${rule}}`);
+            hoverSheet.insertRule(`.${className}:hover{${rule}}`);
             hoverClassNames.set(className, key);
           }
 
@@ -252,7 +240,7 @@ export const createSheet = () => {
           const className = "f-" + hash(rule);
 
           if (!focusClassNames.has(className)) {
-            insertRule(focusSheet, `.${className}:focus-visible{${rule}}`);
+            focusSheet.insertRule(`.${className}:focus-visible{${rule}}`);
             focusClassNames.set(className, key);
           }
 
@@ -264,7 +252,7 @@ export const createSheet = () => {
           const className = "a-" + hash(rule);
 
           if (!activeClassNames.has(className)) {
-            insertRule(activeSheet, `.${className}:active{${rule}}`);
+            activeSheet.insertRule(`.${className}:active{${rule}}`);
             activeClassNames.set(className, key);
           }
 
@@ -275,7 +263,7 @@ export const createSheet = () => {
         const className = "x-" + hash(rule);
 
         if (!atomicClassNames.has(className)) {
-          insertRule(atomicSheet, `.${className}{${rule}}`);
+          atomicSheet.insertRule(`.${className}{${rule}}`);
           atomicClassNames.set(className, key);
         }
 

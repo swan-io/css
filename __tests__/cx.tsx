@@ -14,11 +14,11 @@ test("cx concatenates atomic classes", () => {
     },
   });
 
-  expect(sheet.foo).toMatchInlineSnapshot(`"x-fw3qcu x-1jziecw"`);
-  expect(sheet.bar).toMatchInlineSnapshot(`"x-1yatgts"`);
+  expect(sheet.foo).toMatchInlineSnapshot(`"x-t1fwwl x-1szktvb"`);
+  expect(sheet.bar).toMatchInlineSnapshot(`"x-14zmu5o"`);
 
   expect(cx(sheet.foo, sheet.bar)).toMatchInlineSnapshot(
-    `"x-fw3qcu x-1yatgts"`,
+    `"x-t1fwwl x-14zmu5o"`,
   );
 });
 
@@ -39,12 +39,12 @@ test("cx allows one reset style", async () => {
     },
   });
 
-  expect(sheet.$foo).toMatchInlineSnapshot(`"r-8t3q9b"`);
-  expect(sheet.$bar).toMatchInlineSnapshot(`"r-1yatgts"`);
-  expect(sheet.baz).toMatchInlineSnapshot(`"x-lsxzvj h-bcthhi"`);
+  expect(sheet.$foo).toMatchInlineSnapshot(`"r-1amxq5z"`);
+  expect(sheet.$bar).toMatchInlineSnapshot(`"r-14zmu5o"`);
+  expect(sheet.baz).toMatchInlineSnapshot(`"x-a2elq4 h-1la48u"`);
 
   const className = cx(sheet.$foo, sheet.$bar, sheet.baz);
-  expect(className).toMatchInlineSnapshot(`"r-8t3q9b x-lsxzvj h-bcthhi"`);
+  expect(className).toMatchInlineSnapshot(`"r-1amxq5z x-a2elq4 h-1la48u"`);
 
   const screen = render(<div data-testid="div" className={className} />);
   const div = await screen.getByTestId("div");
@@ -61,7 +61,7 @@ test("cx allows external classes", async () => {
   });
 
   const className = cx(sheet.foo, false && sheet.bar, true && ["foo"]);
-  expect(className).toMatchInlineSnapshot(`"foo x-13hupil"`);
+  expect(className).toMatchInlineSnapshot(`"foo x-10vryi5"`);
 
   const screen = render(<input data-testid="div" className={className} />);
   const div = await screen.getByTestId("div");
