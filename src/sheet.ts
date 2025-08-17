@@ -284,9 +284,6 @@ export const createSheet = () => {
 
   return {
     css: {
-      keyframes: (keyframes: Keyframes): string | undefined =>
-        insertKeyframes(preprocessKeyframes(keyframes)),
-
       make: <K extends string>(
         styles: Record<K, Style> | ((input: Input) => Record<K, Style>),
       ): Record<K, string> => {
