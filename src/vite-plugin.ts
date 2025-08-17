@@ -407,7 +407,7 @@ var caches = {
       }
     },
 
-    generateBundle(_options, _bundle, _isWrite) {
+    generateBundle() {
       const source = getCssFileContent();
 
       const hash = createHash("sha256")
@@ -425,7 +425,7 @@ var caches = {
       });
     },
 
-    transformIndexHtml(html, _context) {
+    transformIndexHtml(html) {
       if (emittedFileName !== "") {
         const attrs = {
           rel: "stylesheet",
