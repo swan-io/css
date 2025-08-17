@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 const config = {
-  entry: ["src/index.ts", "src/vite-plugin.ts"],
+  entry: ["src/index.ts", "src/cx.ts", "src/vite-plugin.ts"],
   target: "es2019",
   tsconfig: "./tsconfig.build.json",
   bundle: true,
