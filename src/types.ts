@@ -1,17 +1,10 @@
-import type {
-  DataType,
-  Globals,
-  Property,
-  StandardLonghandProperties,
-  StandardShorthandProperties,
-  SvgProperties,
-} from "csstype";
+import type * as CSS from "csstype";
 
 type Length = number | (string & {});
 
 type ExcludedValue =
-  | Globals
-  | DataType.DeprecatedSystemColor
+  | CSS.Globals
+  | CSS.DataType.DeprecatedSystemColor
   | `-moz-${string}`
   | `-ms-${string}`
   | `-webkit-${string}`;
@@ -23,7 +16,7 @@ type Simplify<T> = {
 export type ValueOf<T> = T[keyof T];
 
 type ShorthandProperties = Pick<
-  StandardShorthandProperties<Length>,
+  CSS.StandardShorthandProperties<Length>,
   | "backgroundPosition"
   | "borderColor"
   | "borderRadius"
@@ -69,7 +62,7 @@ type ShorthandProperties = Pick<
    * | :----: | :-----: | :----: | :----: | :---: |
    * | **1**  |  **1**  | **1**  | **12** | **3** |
    */
-  marginHorizontal?: Property.MarginInline<Length>;
+  marginHorizontal?: CSS.Property.MarginInline<Length>;
   /**
    * The **`margin-vertical`** CSS property is a non-standard shorthand property that defines both the top and bottom margins of an element.
    *
@@ -81,7 +74,7 @@ type ShorthandProperties = Pick<
    * | :----: | :-----: | :----: | :----: | :---: |
    * | **1**  |  **1**  | **1**  | **12** | **3** |
    */
-  marginVertical?: Property.MarginBlock<Length>;
+  marginVertical?: CSS.Property.MarginBlock<Length>;
   /**
    * The **`padding-horizontal`** CSS property is a non-standard shorthand property that defines both the left and right paddings of an element.
    *
@@ -93,7 +86,7 @@ type ShorthandProperties = Pick<
    * | :----: | :-----: | :----: | :----: | :---: |
    * | **1**  |  **1**  | **1**  | **12** | **4** |
    */
-  paddingHorizontal?: Property.PaddingInline<Length>;
+  paddingHorizontal?: CSS.Property.PaddingInline<Length>;
   /**
    * The **`padding-vertical`** CSS property is a non-standard shorthand property that defines both the top and bottom paddings of an element.
    *
@@ -105,10 +98,10 @@ type ShorthandProperties = Pick<
    * | :----: | :-----: | :----: | :----: | :---: |
    * | **1**  |  **1**  | **1**  | **12** | **4** |
    */
-  paddingVertical?: Property.PaddingBlock<Length>;
+  paddingVertical?: CSS.Property.PaddingBlock<Length>;
 };
 
-type LonghandProperties = StandardLonghandProperties<Length> & {
+type LonghandProperties = CSS.StandardLonghandProperties<Length> & {
   /**
    * The **`line-clamp`** CSS property allows limiting of the contents of a block to the specified number of lines.
    *
@@ -116,25 +109,26 @@ type LonghandProperties = StandardLonghandProperties<Length> & {
    *
    * **Initial value**: `none`
    */
-  lineClamp?: Property.WebkitLineClamp;
+  lineClamp?: CSS.Property.WebkitLineClamp;
 };
 
 export type ShorthandProperty = keyof ShorthandProperties;
 export type LonghandProperty = keyof LonghandProperties;
 
-export type Style = Simplify<
-  ShorthandProperties & LonghandProperties & SvgProperties<Length>
+export type FlatStyle = Simplify<
+  ShorthandProperties & LonghandProperties & CSS.SvgProperties<Length>
 >;
 
-export type Property = keyof Style;
-export type PseudoClass = ":hover" | ":focus" | ":active";
+export type Property = keyof FlatStyle;
 
-export type Nestable<T> = T & {
-  [K in PseudoClass]?: T;
+export type Style = FlatStyle & {
+  ":hover"?: FlatStyle;
+  ":focus"?: FlatStyle;
+  ":active"?: FlatStyle;
 };
 
 export type Keyframe = "from" | "to" | `${number}%`;
-export type Keyframes = Partial<Record<Keyframe, Style | undefined>>;
+export type Keyframes = Partial<Record<Keyframe, FlatStyle | undefined>>;
 
 // From react-native StyleSheet.d.ts
 type Falsy = undefined | null | false;

@@ -1,7 +1,7 @@
 import { hash } from "./hash";
 import { hyphenateName } from "./hyphenateName";
 import { normalizeValue } from "./normalizeValue";
-import type { ClassNames, Keyframes, Nestable, Style } from "./types";
+import type { ClassNames, FlatStyle, Keyframes, Style } from "./types";
 import { forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
@@ -200,7 +200,7 @@ export const createSheet = () => {
     return name;
   };
 
-  const insertResetRule = (style: Style): string => {
+  const insertResetRule = (style: FlatStyle): string => {
     if (resetSheet == null) {
       return "";
     }
@@ -221,7 +221,7 @@ export const createSheet = () => {
     return className;
   };
 
-  const insertAtomicRules = (style: Nestable<Style>): string => {
+  const insertAtomicRules = (style: Style): string => {
     let classNames = "";
 
     if (
@@ -235,7 +235,7 @@ export const createSheet = () => {
 
     forEach(style, (key, value) => {
       if (key === ":hover") {
-        forEach(value as Style, (key, value) => {
+        forEach(value as FlatStyle, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "h-" + hash(rule);
 
@@ -247,7 +247,7 @@ export const createSheet = () => {
           classNames = appendString(classNames, className);
         });
       } else if (key === ":focus") {
-        forEach(value as Style, (key, value) => {
+        forEach(value as FlatStyle, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "f-" + hash(rule);
 
@@ -259,7 +259,7 @@ export const createSheet = () => {
           classNames = appendString(classNames, className);
         });
       } else if (key === ":active") {
-        forEach(value as Style, (key, value) => {
+        forEach(value as FlatStyle, (key, value) => {
           const rule = stringifyRule(key, value);
           const className = "a-" + hash(rule);
 

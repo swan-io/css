@@ -26,10 +26,6 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-
-    "paths": {
-      "@swan-io/css": ["../src"]
-    }
+    "noUnusedParameters": true
   }
 }

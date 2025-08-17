@@ -1,30 +1,22 @@
 {
   "name": "@swan-io/css-example",
   "private": true,
-  "packageManager": "pnpm@10.12.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "dev": "vite",
     "preview": "vite preview"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@swc/core",
-      "esbuild"
-    ]
-  },
   "dependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "@swan-io/css": "workspace:*",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
-    "@types/react": "19.1.6",
-    "@types/react-dom": "19.1.6",
-    "@vitejs/plugin-react-swc": "3.10.1",
-    "typescript": "5.8.3",
-    "vite": "6.3.5"
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "@vitejs/plugin-react-swc": "4.0.0",
+    "typescript": "5.9.2",
+    "vite": "7.1.2"
   }
 }

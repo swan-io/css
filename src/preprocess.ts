@@ -1,8 +1,8 @@
 import valueParser from "postcss-value-parser";
 import type {
+  FlatStyle,
   Keyframes,
   LonghandProperty,
-  Nestable,
   Property,
   ShorthandProperty,
   Style,
@@ -61,9 +61,9 @@ const shorthands: Partial<Record<Property, Property[]>> = {
 >;
 
 const preprocessRule = (
-  acc: Style,
+  acc: FlatStyle,
   key: Property,
-  value: ValueOf<Style>,
+  value: ValueOf<FlatStyle>,
 ): void => {
   if (value != null) {
     const shorthand = shorthands[key];
@@ -118,8 +118,8 @@ const preprocessRule = (
   }
 };
 
-const preprocessStyle = (style: Style): Style => {
-  const output: Style = {};
+const preprocessStyle = (style: FlatStyle): FlatStyle => {
+  const output: FlatStyle = {};
 
   forEach(style, (key, value) => {
     preprocessRule(output, key, value);
@@ -139,8 +139,8 @@ export const preprocessKeyframes = (keyframes: Keyframes): Keyframes => {
   return output;
 };
 
-export const preprocessResetStyle = (style: Nestable<Style>): Style => {
-  const output: Style = {};
+export const preprocessResetStyle = (style: Style): FlatStyle => {
+  const output: FlatStyle = {};
 
   forEach(style, (key, value) => {
     if (key === ":hover" || key === ":focus" || key === ":active") {
@@ -148,31 +148,29 @@ export const preprocessResetStyle = (style: Nestable<Style>): Style => {
         console.warn(`"${key}" is not supported in reset styles.`);
       }
     } else {
-      preprocessRule(output, key, value as ValueOf<Style>);
+      preprocessRule(output, key, value as ValueOf<FlatStyle>);
     }
   });
 
   return output;
 };
 
-export const preprocessAtomicStyle = (
-  style: Nestable<Style>,
-): Nestable<Style> => {
-  const output: Nestable<Style> = {};
+export const preprocessAtomicStyle = (style: Style): Style => {
+  const output: Style = {};
 
-  let hover: Style | undefined = undefined;
-  let focus: Style | undefined = undefined;
-  let active: Style | undefined = undefined;
+  let hover: FlatStyle | undefined = undefined;
+  let focus: FlatStyle | undefined = undefined;
+  let active: FlatStyle | undefined = undefined;
 
   forEach(style, (key, value) => {
     if (key === ":hover") {
-      hover = preprocessStyle(value as Style);
+      hover = preprocessStyle(value as FlatStyle);
     } else if (key === ":focus") {
-      focus = preprocessStyle(value as Style);
+      focus = preprocessStyle(value as FlatStyle);
     } else if (key === ":active") {
-      active = preprocessStyle(value as Style);
+      active = preprocessStyle(value as FlatStyle);
     } else {
-      preprocessRule(output, key, value as ValueOf<Style>);
+      preprocessRule(output, key, value as ValueOf<FlatStyle>);
     }
   });
 
