@@ -135,7 +135,6 @@ export const createSheet = () => {
   const activeClassNames = new Map<string, string | undefined>();
 
   // Rehydrate keyframes sheet
-
   for (const rule of keyframesSheet.cssRules) {
     if (rule instanceof CSSKeyframesRule) {
       keyframesNames.add(rule.name);
