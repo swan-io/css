@@ -6,7 +6,7 @@ import {
   preprocessKeyframes,
   preprocessResetStyle,
 } from "./preprocess";
-import type { ClassNames, FlatStyle, Keyframes, Style } from "./types";
+import type { ClassNames, FlatStyle, Input, Keyframes, Style } from "./types";
 import { forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
@@ -278,25 +278,33 @@ export const createSheet = () => {
     return classNames;
   };
 
+  const input: Input = {
+    keyframes: (keyframes) => insertKeyframes(preprocessKeyframes(keyframes)),
+  };
+
   return {
     css: {
       keyframes: (keyframes: Keyframes): string | undefined =>
         insertKeyframes(preprocessKeyframes(keyframes)),
 
-      make: <K extends string>(styles: Record<K, Style>): Record<K, string> => {
+      make: <K extends string>(
+        styles: Record<K, Style> | ((input: Input) => Record<K, Style>),
+      ): Record<K, string> => {
         const output = {} as Record<K, string>;
 
-        forEach(styles, (key, value) => {
-          output[key] =
-            key[0] === "$"
-              ? insertResetRule(preprocessResetStyle(value))
-              : insertAtomicRules(preprocessAtomicStyle(value));
-        });
+        forEach(
+          typeof styles === "function" ? styles(input) : styles,
+          (key, value) => {
+            output[key] =
+              key[0] === "$"
+                ? insertResetRule(preprocessResetStyle(value))
+                : insertAtomicRules(preprocessAtomicStyle(value));
+          },
+        );
 
         return output;
       },
     },
-
     cx: (...items: ClassNames): string => {
       const classNames = extractClassNames(items, []);
 

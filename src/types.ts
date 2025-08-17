@@ -137,3 +137,7 @@ interface RecursiveArray<T>
   extends Array<T | readonly T[] | RecursiveArray<T>> {}
 
 export type ClassNames = RecursiveArray<string | Falsy>;
+
+export interface Input {
+  keyframes: (keyframes: Keyframes) => string | undefined;
+}

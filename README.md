@@ -65,7 +65,21 @@ const sheet = css.make({
 console.log(sheet.box); // a string list of generated classes
 ```
 
-> [!TIP]
+```tsx
+const sheet = css.make(({ keyframes }) => ({
+  box: {
+    animationDuration: "300ms",
+
+    // inject a keyframes rule and generate a unique name for it
+    animationName: keyframes({
+      "0%": { opacity: 0 },
+      "100%": { opacity: 1 },
+    }),
+  },
+}));
+```
+
+> [!NOTE]
 > Styles prefixed with `$` will be inserted as non-atomic CSS-in-JS, which is particularly useful for resetting the styles of an HTML element.
 
 ```tsx
@@ -79,22 +93,6 @@ const sheet = css.make({
   input: {
     color: "grey",
     display: "flex",
-  },
-});
-```
-
-### css.keyframes
-
-Inject a keyframes rule and generate a unique name for it.
-
-```tsx
-const sheet = css.make({
-  box: {
-    animationDuration: "300ms",
-    animationName: css.keyframes({
-      "0%": { opacity: 0 },
-      "100%": { opacity: 1 },
-    }),
   },
 });
 ```

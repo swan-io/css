@@ -4,8 +4,10 @@ export const useSheetLogger = () => {
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if (event.code === "KeyL") {
+        const id = "swan-stylesheet";
+
         const sheet = document.querySelector<HTMLStyleElement>(
-          `style[id="swan-stylesheet"]`,
+          `style[id="${id}"]`,
         )?.sheet;
 
         if (sheet != null) {

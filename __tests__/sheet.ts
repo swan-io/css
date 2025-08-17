@@ -3,7 +3,7 @@ import { css } from "../src";
 import { getSheets } from "./utils";
 
 test("sheet create and use different subsheets", async () => {
-  css.make({
+  css.make(({ keyframes }) => ({
     $reset: {
       display: "flex",
       width: 100,
@@ -14,7 +14,7 @@ test("sheet create and use different subsheets", async () => {
       backgroundColor: "white",
       color: "red",
 
-      animationName: css.keyframes({
+      animationName: keyframes({
         from: { opacity: 0 },
         to: { opacity: 1 },
       }),
@@ -23,7 +23,7 @@ test("sheet create and use different subsheets", async () => {
       ":focus": { color: "blue" },
       ":active": { color: "rebeccapurple" },
     },
-  });
+  }));
 
   const { main, keyframes, reset, atomic, hover, focus, active } = getSheets();
 
