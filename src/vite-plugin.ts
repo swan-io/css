@@ -22,6 +22,10 @@ const SUPPORTED_EXTENSIONS = new Set([
 
 // oxc-parser: "js" | "jsx" | "ts" | "tsx"
 
+type PluginOptions = {
+  fileName?: string;
+};
+
 const stringifySet = (value: Set<string>): string =>
   `new Set([${[...value].map((item) => `"${item}"`).join(",")}])`;
 
@@ -30,10 +34,6 @@ const stringifyMap = (value: Map<string, string | undefined>): string =>
     .filter((entry): entry is [string, string] => entry[1] != null)
     .map(([key, value]) => `["${key}", "${value}"]`)
     .join(",")}])`;
-
-type PluginOptions = {
-  fileName?: string;
-};
 
 const isCssMethodNode = (
   importName: string,
