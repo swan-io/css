@@ -48,31 +48,21 @@ const isCssMethodNode = (
   node.property.name === methodName;
 
 const normalizeInput = (
-  input: string | string[] | Record<string, string> | undefined,
-): string[] => {
-  if (input == null) {
-    return ["index.html"]; // Vite's default
-  }
-  if (typeof input === "string") {
-    return [input];
-  }
-  if (Array.isArray(input)) {
-    return input;
-  }
+  input: string | string[] | Record<string, string>,
+): string[] =>
+  typeof input === "string"
+    ? [input]
+    : Array.isArray(input)
+      ? input
+      : Object.values(input);
 
-  return Object.values(input);
-};
-
-const normalizeRoot = (root: string, configFile: string | undefined) => {
-  if (path.isAbsolute(root)) {
-    return root;
-  }
-  if (configFile == null) {
-    return path.resolve(process.cwd(), root);
-  }
-
-  return path.resolve(path.dirname(configFile), root);
-};
+const normalizeRoot = (root: string, configFile: string | undefined) =>
+  path.isAbsolute(root)
+    ? root
+    : path.resolve(
+        configFile != null ? path.dirname(configFile) : process.cwd(),
+        root,
+      );
 
 // TODO: do nothing if it's SSR build, only client build
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
@@ -189,7 +179,9 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
 
       const root = normalizeRoot(config.root, config.configFile);
 
-      const input = normalizeInput(config.build.rollupOptions.input)
+      const input = normalizeInput(
+        config.build.rollupOptions.input ?? "index.html", // fallback to vite's default
+      )
         .filter((item) => item != null)
         .map((input) => path.resolve(root, input));
 
