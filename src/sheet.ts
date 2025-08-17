@@ -273,78 +273,76 @@ export const createSheet = () => {
     return classNames;
   };
 
-  const cx = (...items: ClassNames): string => {
-    const classNames = extractClassNames(items, []);
-
-    let output = "";
-
-    let cacheKey: string | undefined = undefined;
-    let reset: string | undefined = undefined;
-
-    const atomic: Record<string, string> = {};
-    const hover: Record<string, string> = {};
-    const focus: Record<string, string> = {};
-    const active: Record<string, string> = {};
-
-    for (const className of classNames) {
-      cacheKey = atomicClassNames.get(className);
-
-      if (cacheKey != null) {
-        atomic[cacheKey] = className;
-        continue;
-      }
-
-      cacheKey = hoverClassNames.get(className);
-
-      if (cacheKey != null) {
-        hover[cacheKey] = className;
-        continue;
-      }
-
-      cacheKey = focusClassNames.get(className);
-
-      if (cacheKey != null) {
-        focus[cacheKey] = className;
-        continue;
-      }
-
-      cacheKey = activeClassNames.get(className);
-
-      if (cacheKey != null) {
-        active[cacheKey] = className;
-        continue;
-      }
-
-      if (resetClassNames.has(className)) {
-        if (reset == null) {
-          reset = className;
-        } else if (reset !== className) {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("`cx` only accepts one reset style.");
-          }
-        }
-      } else {
-        output = appendString(output, className);
-      }
-    }
-
-    if (reset != null) {
-      output = appendString(output, reset);
-    }
-
-    output = appendClassNames(output, atomic);
-    output = appendClassNames(output, hover);
-    output = appendClassNames(output, focus);
-    output = appendClassNames(output, active);
-
-    return output;
-  };
-
   return {
     insertKeyframes,
     insertResetRule,
     insertAtomicRules,
 
-    cx,
+    cx: (...items: ClassNames): string => {
+      const classNames = extractClassNames(items, []);
+
+      let output = "";
+
+      let cacheKey: string | undefined = undefined;
+      let reset: string | undefined = undefined;
+
+      const atomic: Record<string, string> = {};
+      const hover: Record<string, string> = {};
+      const focus: Record<string, string> = {};
+      const active: Record<string, string> = {};
+
+      for (const className of classNames) {
+        cacheKey = atomicClassNames.get(className);
+
+        if (cacheKey != null) {
+          atomic[cacheKey] = className;
+          continue;
+        }
+
+        cacheKey = hoverClassNames.get(className);
+
+        if (cacheKey != null) {
+          hover[cacheKey] = className;
+          continue;
+        }
+
+        cacheKey = focusClassNames.get(className);
+
+        if (cacheKey != null) {
+          focus[cacheKey] = className;
+          continue;
+        }
+
+        cacheKey = activeClassNames.get(className);
+
+        if (cacheKey != null) {
+          active[cacheKey] = className;
+          continue;
+        }
+
+        if (resetClassNames.has(className)) {
+          if (reset == null) {
+            reset = className;
+          } else if (reset !== className) {
+            if (process.env.NODE_ENV === "development") {
+              console.warn("`cx` only accepts one reset style.");
+            }
+          }
+        } else {
+          output = appendString(output, className);
+        }
+      }
+
+      if (reset != null) {
+        output = appendString(output, reset);
+      }
+
+      output = appendClassNames(output, atomic);
+      output = appendClassNames(output, hover);
+      output = appendClassNames(output, focus);
+      output = appendClassNames(output, active);
+
+      return output;
+    },
   };
 };
