@@ -259,7 +259,7 @@ const insertAtomicRules = (style: Style): string => {
   return classNames;
 };
 
-export const cssMakeInput: Input = {
+const _input: Input = {
   keyframes: (keyframes) => insertKeyframes(preprocessKeyframes(keyframes)),
 };
 
@@ -267,7 +267,7 @@ export const css = {
   extend: <const T extends Record<string, unknown>>(input: T) => {
     forEach(input, (key, value) => {
       // @ts-expect-error keep initial object instance reference
-      cssMakeInput[key] = value;
+      _input[key] = value;
     });
 
     return input;
@@ -278,7 +278,7 @@ export const css = {
     const output = {} as Record<K, string>;
 
     forEach(
-      typeof styles === "function" ? styles(cssMakeInput) : styles,
+      typeof styles === "function" ? styles(_input) : styles,
       (key, value) => {
         output[key] =
           key[0] === "$"
@@ -290,6 +290,8 @@ export const css = {
     return output;
   },
 };
+
+export const getCssMakeInput = () => _input;
 
 export const getCssFileContent = () =>
   [

@@ -7,8 +7,6 @@ import { type Node } from "oxc-parser";
 import { ResolverFactory } from "oxc-resolver";
 import { parseAndWalk } from "oxc-walker";
 import type { Plugin } from "vite";
-import { css, cssMakeInput, getCssFileContent } from "./css";
-import { caches } from "./cx";
 
 // Vite's default (https://vite.dev/config/shared-options.html#resolve-extensions)
 // TODO: inline? add cjs, cts?
@@ -77,7 +75,10 @@ const normalizeRoot = (root: string, configFile: string | undefined) => {
 };
 
 // TODO: do nothing if it's SSR build, only client build
-const plugin = (options: PluginOptions = {}): Plugin => {
+const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
+  const { css, getCssMakeInput, getCssFileContent } = await import("./css");
+  const { caches } = await import("./cx");
+
   const packageName = "@swan-io/css";
   const packageAliases = new Set([packageName]);
 
@@ -143,6 +144,7 @@ const plugin = (options: PluginOptions = {}): Plugin => {
             const imports = new Set<string>();
 
             // TODO: avoid parsing + walking the file twice (save ASTs?)
+            // TODO: replace with parseSync + walk
             parseAndWalk(code, file, (node) => {
               if (
                 node.type === "ImportDeclaration" ||
@@ -243,20 +245,20 @@ const plugin = (options: PluginOptions = {}): Plugin => {
                 new Function(
                   "input",
                   `return (${code.slice(fn.start, fn.end)})(input);`,
-                )(cssMakeInput),
+                )(getCssMakeInput()),
               );
             }
           }
         });
       }
 
-      // TODO: fix the path
-      const cxId = path.join(__dirname, "../dist/cx.mjs"); // TODO: only work in production
+      const cxId = path.join(__dirname, "./cx.mjs");
       const cxCode = fs.readFileSync(cxId, "utf-8");
 
       const magicString = new MagicString(cxCode);
 
       // TODO: lint that there's no imports
+      // TODO: replace with parseSync + walk
       parseAndWalk(cxCode, cxId, (node) => {
         if (node.type === "VariableDeclaration") {
           const declaration = node.declarations[0];
@@ -381,7 +383,7 @@ var caches = {
               new Function(
                 "input",
                 `return (${magicString.slice(fn.start, fn.end)})(input);`,
-              )(cssMakeInput),
+              )(getCssMakeInput()),
             );
 
             magicString.overwrite(
