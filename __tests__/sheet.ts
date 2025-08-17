@@ -52,20 +52,20 @@ test("sheet create and use different subsheets", async () => {
 
   expect(atomic.rules.join("\n")).toMatchInlineSnapshot(`
     ".x-brsnw3 { animation-duration: 200ms; }
-    .x-15y6h4w { background-color: rgb(255, 255, 255); }
-    .x-1tkyx38 { color: rgb(255, 0, 0); }
+    .x-1pz2alh { background-color: rgb(255, 255, 255); }
+    .x-dztn2i { color: rgb(255, 0, 0); }
     .x-j8yzpo { animation-name: k-1mf61dn; }"
   `);
 
   expect(hover.rules.join("\n")).toMatchInlineSnapshot(
-    `".h-1w6oenc:hover { color: rgb(0, 128, 0); }"`,
+    `".h-a4kfub:hover { color: rgb(0, 128, 0); }"`,
   );
 
   expect(focus.rules.join("\n")).toMatchInlineSnapshot(
-    `".f-rc30ek:focus-visible { color: rgb(0, 0, 255); }"`,
+    `".f-9faglj:focus-visible { color: rgb(0, 0, 255); }"`,
   );
 
   expect(active.rules.join("\n")).toMatchInlineSnapshot(
-    `".a-1ngrkn9:active { color: rgb(102, 51, 153); }"`,
+    `".a-45si6m:active { color: rgb(102, 51, 153); }"`,
   );
 });
