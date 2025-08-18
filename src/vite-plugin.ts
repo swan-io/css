@@ -39,7 +39,6 @@ const normalizeConfig = (config: ResolvedConfig) => {
 
   // https://vite.dev/config/shared-options.html#resolve-extensions
   const supportedExts = new Set([".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx"]);
-  // oxc-parser: "js" | "jsx" | "ts" | "tsx"
 
   const root = path.isAbsolute(config.root)
     ? config.root
@@ -70,6 +69,88 @@ const normalizeConfig = (config: ResolvedConfig) => {
   };
 };
 
+const getImportMap = ({
+  alias,
+  extensions,
+  root,
+  inputs,
+}: ReturnType<typeof normalizeConfig>): Set<string> => {
+  const resolve = new ResolverFactory({ alias, extensions });
+  const seen = new Set<string>();
+
+  const visit = (file: string) => {
+    if (seen.has(file)) {
+      return;
+    }
+
+    seen.add(file);
+
+    const code = fs.readFileSync(file, "utf-8");
+    const dir = path.dirname(file);
+    const ext = path.extname(file);
+
+    if (ext === ".html" || ext === ".htm") {
+      const html = HTMLParser.parse(code);
+
+      const imports = [...html.querySelectorAll(`script[type="module"]`)]
+        .map((item) => item.getAttribute("src"))
+        .filter((src) => src != null)
+        .filter((src) => extensions.includes(path.extname(src)))
+        .map((src) =>
+          path.resolve(root, path.isAbsolute(src) ? path.join(dir, src) : src),
+        );
+
+      // Depth-first: visit each import before continuing
+      for (const item of imports) {
+        visit(item);
+      }
+    } else if (extensions.includes(ext)) {
+      const imports = new Set<string>();
+
+      // TODO: avoid parsing + walking the file twice (save ASTs?)
+      // TODO: replace with parseSync + walk
+      parseAndWalk(code, file, (node) => {
+        if (
+          node.type === "ImportDeclaration" ||
+          node.type === "ExportAllDeclaration"
+        ) {
+          return imports.add(node.source.value);
+        }
+
+        if (
+          node.type === "ImportExpression" ||
+          node.type === "ExportNamedDeclaration"
+        ) {
+          if (
+            node.source?.type === "Literal" &&
+            typeof node.source.value === "string"
+          ) {
+            return imports.add(node.source.value);
+          }
+        }
+      });
+
+      for (const specifier of imports) {
+        try {
+          const resolved = resolve.sync(dir, specifier).path;
+
+          if (resolved != null) {
+            visit(resolved);
+          }
+        } catch {
+          // ignore unresolved
+        }
+      }
+    }
+  };
+
+  for (const input of inputs) {
+    visit(input);
+  }
+
+  return seen;
+};
+
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   const { css, getCssMakeInput, getCssFileContent } = await import("./css");
   const { caches } = await import("./cx");
@@ -87,9 +168,9 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   return {
     name: packageName,
 
-    configResolved: (rawConfig) => {
-      const { alias, extensions, inputs, root, ...config } =
-        normalizeConfig(rawConfig);
+    configResolved: (resolvedConfig) => {
+      const config = normalizeConfig(resolvedConfig);
+      const { alias } = config;
 
       assetsDir = config.assetsDir;
 
@@ -97,84 +178,7 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
         alias[packageName].forEach((item) => packageAliases.add(item));
       }
 
-      const resolve = new ResolverFactory({ alias, extensions });
-
-      const getImportMap = (inputs: string[]): Set<string> => {
-        const seen = new Set<string>();
-
-        const visit = (file: string) => {
-          if (seen.has(file)) {
-            return;
-          }
-
-          seen.add(file);
-
-          const dir = path.dirname(file);
-          const ext = path.extname(file);
-          const code = fs.readFileSync(file, "utf-8");
-
-          if (ext === ".html" || ext === ".htm") {
-            const html = HTMLParser.parse(code);
-
-            const imports = [...html.querySelectorAll(`script[type="module"]`)]
-              .map((item) => item.getAttribute("src"))
-              .filter((src) => src != null)
-              .filter((src) => extensions.includes(path.extname(src)))
-              .map((src) => (path.isAbsolute(src) ? path.join(dir, src) : src))
-              .map((src) => path.resolve(root, src));
-
-            // Depth-first: visit each import before continuing
-            for (const item of imports) {
-              visit(item);
-            }
-          } else if (extensions.includes(ext)) {
-            const imports = new Set<string>();
-
-            // TODO: avoid parsing + walking the file twice (save ASTs?)
-            // TODO: replace with parseSync + walk
-            parseAndWalk(code, file, (node) => {
-              if (
-                node.type === "ImportDeclaration" ||
-                node.type === "ExportAllDeclaration"
-              ) {
-                return imports.add(node.source.value);
-              }
-
-              if (
-                node.type === "ImportExpression" ||
-                node.type === "ExportNamedDeclaration"
-              ) {
-                if (
-                  node.source?.type === "Literal" &&
-                  typeof node.source.value === "string"
-                ) {
-                  return imports.add(node.source.value);
-                }
-              }
-            });
-
-            for (const specifier of imports) {
-              try {
-                const resolved = resolve.sync(dir, specifier).path;
-
-                if (resolved != null) {
-                  visit(resolved);
-                }
-              } catch {
-                // ignore unresolved
-              }
-            }
-          }
-        };
-
-        for (const input of inputs) {
-          visit(input);
-        }
-
-        return seen;
-      };
-
-      const imports = getImportMap(inputs);
+      const imports = getImportMap(config);
 
       for (const id of imports) {
         const code = fs.readFileSync(id, "utf-8");
@@ -235,7 +239,6 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
 
       const cxId = path.join(__dirname, "./cx.mjs");
       const cxCode = fs.readFileSync(cxId, "utf-8");
-
       const magicString = new MagicString(cxCode);
 
       // TODO: lint that there's no imports
