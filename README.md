@@ -121,6 +121,8 @@ declare module "@swan-io/css" {
 
 ```tsx
 // main.ts
+
+// import theme.ts before anything else
 import "./theme";
 
 import { createRoot } from "react-dom/client";
