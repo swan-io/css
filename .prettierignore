@@ -1,2 +1,3 @@
+.vite-inspect/
 dist/
 pnpm-lock.yaml
