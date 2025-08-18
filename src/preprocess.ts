@@ -168,17 +168,14 @@ export const preprocessAtomicStyle = (style: Style): Style => {
         hover = preprocessStyle(value as FlatStyle);
         break;
       }
-
       case ":focus": {
         focus = preprocessStyle(value as FlatStyle);
         break;
       }
-
       case ":active": {
         active = preprocessStyle(value as FlatStyle);
         break;
       }
-
       default: {
         preprocessRule(output, key, value as ValueOf<FlatStyle>);
       }

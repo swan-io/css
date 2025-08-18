@@ -7,6 +7,7 @@ import type { CallExpression, ImportDeclaration } from "oxc-parser";
 import { ResolverFactory } from "oxc-resolver";
 import { parseAndWalk } from "oxc-walker";
 import type { Plugin, ResolvedConfig } from "vite";
+import { getCssExtendInput } from "./css";
 
 type PluginOptions = {
   fileName?: string;
@@ -188,6 +189,16 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
                         `return ${code.slice(arg.start, arg.end)};`,
                       )(),
                     );
+                  } else if (
+                    arg?.type === "ArrowFunctionExpression" ||
+                    arg?.type === "FunctionExpression"
+                  ) {
+                    css.extend(
+                      new Function(
+                        "input",
+                        `return (${code.slice(arg.start, arg.end)})(input);`,
+                      )(getCssExtendInput()),
+                    );
                   }
 
                   break;
@@ -330,6 +341,22 @@ var caches = {
                   new Function(
                     `return ${magicString.slice(arg.start, arg.end)};`,
                   )(),
+                );
+
+                magicString.overwrite(
+                  node.start,
+                  node.end,
+                  JSON.stringify(result, null, 2),
+                );
+              } else if (
+                arg?.type === "ArrowFunctionExpression" ||
+                arg?.type === "FunctionExpression"
+              ) {
+                const result = css.extend(
+                  new Function(
+                    "input",
+                    `return (${magicString.slice(arg.start, arg.end)})(input);`,
+                  )(getCssExtendInput()),
                 );
 
                 magicString.overwrite(

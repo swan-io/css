@@ -138,6 +138,11 @@ interface RecursiveArray<T>
 
 export type ClassNames = RecursiveArray<string | Falsy>;
 
+export type KeyframesFn = (keyframes: Keyframes) => string | undefined;
+
+export interface BaseInput {
+  keyframes: KeyframesFn;
+}
 export interface Input {
-  keyframes: (keyframes: Keyframes) => string | undefined;
+  keyframes: KeyframesFn;
 }

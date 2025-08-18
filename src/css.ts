@@ -7,7 +7,14 @@ import {
   preprocessKeyframes,
   preprocessResetStyle,
 } from "./preprocess";
-import type { FlatStyle, Input, Keyframes, Style } from "./types";
+import type {
+  BaseInput,
+  FlatStyle,
+  Input,
+  Keyframes,
+  KeyframesFn,
+  Style,
+} from "./types";
 import { appendString, forEach } from "./utils";
 
 const getSheet = (id: string): CSSStyleSheet | null => {
@@ -273,16 +280,23 @@ const insertAtomicRules = (style: Style): string => {
   return classNames;
 };
 
-const _input: Input = {
-  keyframes: (keyframes) => insertKeyframes(preprocessKeyframes(keyframes)),
-};
+const keyframes: KeyframesFn = (keyframes) =>
+  insertKeyframes(preprocessKeyframes(keyframes));
+
+const _cssExtendInput: BaseInput = { keyframes };
+const _cssMakeInput: Input = { keyframes };
 
 export const css = {
-  extend: <const T extends Record<string, unknown>>(input: T) => {
-    forEach(input, (key, value) => {
-      // @ts-expect-error keep initial object instance reference
-      _input[key] = value;
-    });
+  extend: <const T extends Record<string, unknown>>(
+    input: T | ((input: BaseInput) => T),
+  ) => {
+    forEach(
+      typeof input === "function" ? input(_cssExtendInput) : input,
+      (key, value) => {
+        // @ts-expect-error keep initial object instance reference
+        _cssMakeInput[key] = value;
+      },
+    );
 
     return input;
   },
@@ -292,7 +306,7 @@ export const css = {
     const output = {} as Record<K, string>;
 
     forEach(
-      typeof styles === "function" ? styles(_input) : styles,
+      typeof styles === "function" ? styles(_cssMakeInput) : styles,
       (key, value) => {
         output[key] =
           key[0] === "$"
@@ -305,7 +319,8 @@ export const css = {
   },
 };
 
-export const getCssMakeInput = () => _input;
+export const getCssExtendInput = () => _cssExtendInput;
+export const getCssMakeInput = () => _cssMakeInput;
 
 export const getCssFileContent = () =>
   [
