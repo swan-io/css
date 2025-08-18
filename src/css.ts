@@ -223,6 +223,7 @@ const insertAtomicRules = (style: Style): string => {
 
         break;
       }
+
       case ":focus": {
         forEach(value as FlatStyle, (key, value) => {
           const rule = stringifyRule(key, value);
@@ -238,6 +239,7 @@ const insertAtomicRules = (style: Style): string => {
 
         break;
       }
+
       case ":active": {
         forEach(value as FlatStyle, (key, value) => {
           const rule = stringifyRule(key, value);
@@ -253,6 +255,7 @@ const insertAtomicRules = (style: Style): string => {
 
         break;
       }
+
       default: {
         const rule = stringifyRule(key, value as string | number);
         const className = "x-" + hash(rule);
@@ -263,7 +266,6 @@ const insertAtomicRules = (style: Style): string => {
         }
 
         classNames = appendString(classNames, className);
-        break;
       }
     }
   });
