@@ -12,15 +12,6 @@ type PluginOptions = {
   fileName?: string;
 };
 
-const stringifySet = (value: Set<string>): string =>
-  `new Set([${[...value].map((item) => `"${item}"`).join(",")}])`;
-
-const stringifyMap = (value: Map<string, string | undefined>): string =>
-  `new Map([${[...value.entries()]
-    .filter((entry): entry is [string, string] => entry[1] != null)
-    .map(([key, value]) => `["${key}", "${value}"]`)
-    .join(",")}])`;
-
 const isCssMethod = (
   { callee }: CallExpression,
   importName: string,
@@ -248,6 +239,13 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
 
       const magicString = new MagicString(cxCode);
 
+      const toStringMap = (map: Map<string, string | undefined>): string =>
+        `new Map([${[...map.entries()]
+          .reduce<string[]>((acc, [key, value]) => {
+            return value != null ? [...acc, `["${key}", "${value}"]`] : acc;
+          }, [])
+          .join(",")}])`;
+
       parseAndWalk(cxCode, cxId, (node) => {
         if (node.type === "VariableDeclaration") {
           const declaration = node.declarations[0];
@@ -262,11 +260,11 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
               node.end,
               `
 var caches = {
-  reset: ${stringifySet(caches.reset)},
-  atomic: ${stringifyMap(caches.atomic)},
-  hover: ${stringifyMap(caches.hover)},
-  focus: ${stringifyMap(caches.focus)},
-  active:  ${stringifyMap(caches.active)},
+  reset: new Set([${[...caches.reset].map((item) => `"${item}"`).join(",")}]),
+  atomic: ${toStringMap(caches.atomic)},
+  hover: ${toStringMap(caches.hover)},
+  focus: ${toStringMap(caches.focus)},
+  active:  ${toStringMap(caches.active)},
 };
 `.trim(),
             );
