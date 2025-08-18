@@ -3,7 +3,7 @@ import HTMLParser from "node-html-parser";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { type CallExpression, type ImportDeclaration } from "oxc-parser";
+import type { CallExpression, ImportDeclaration } from "oxc-parser";
 import { ResolverFactory } from "oxc-resolver";
 import { parseAndWalk } from "oxc-walker";
 import type { Plugin, ResolvedConfig } from "vite";
@@ -11,6 +11,17 @@ import type { Plugin, ResolvedConfig } from "vite";
 type PluginOptions = {
   fileName?: string;
 };
+
+const findSpecifier = (
+  { specifiers }: ImportDeclaration,
+  specifierName: "css" | "cx",
+) =>
+  specifiers.find(
+    (specifier) =>
+      specifier.type === "ImportSpecifier" &&
+      specifier.imported.type === "Identifier" &&
+      specifier.imported.name === specifierName,
+  );
 
 const isCssMethod = (
   { callee }: CallExpression,
@@ -23,17 +34,6 @@ const isCssMethod = (
   callee.object.name === importName &&
   callee.property.type === "Identifier" &&
   callee.property.name === methodName;
-
-const findSpecifier = (
-  { specifiers }: ImportDeclaration,
-  specifierName: "css" | "cx",
-) =>
-  specifiers.find(
-    (specifier) =>
-      specifier.type === "ImportSpecifier" &&
-      specifier.imported.type === "Identifier" &&
-      specifier.imported.name === specifierName,
-  );
 
 const normalizeConfig = (config: ResolvedConfig) => {
   const { build, configFile: file, resolve } = config;
