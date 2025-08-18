@@ -241,8 +241,6 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
       const cxCode = fs.readFileSync(cxId, "utf-8");
       const magicString = new MagicString(cxCode);
 
-      // TODO: lint that there's no imports
-      // TODO: replace with parseSync + walk
       parseAndWalk(cxCode, cxId, (node) => {
         if (node.type === "VariableDeclaration") {
           const declaration = node.declarations[0];
