@@ -2,7 +2,6 @@
 
 [![mit licence](https://img.shields.io/dub/l/vibe-d.svg?style=for-the-badge)](https://github.com/swan-io/css/blob/main/LICENSE)
 [![npm version](https://img.shields.io/npm/v/@swan-io/css?style=for-the-badge)](https://www.npmjs.org/package/@swan-io/css)
-[![bundlephobia](https://img.shields.io/bundlephobia/minzip/@swan-io/css?label=size&style=for-the-badge)](https://bundlephobia.com/result?p=@swan-io/css)
 
 A lightweight and performant atomic CSS-in-JS library.
 
