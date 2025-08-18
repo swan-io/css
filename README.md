@@ -102,6 +102,7 @@ Extend `css.make` input with custom tokens (e.g. colors, spacing, fonts) / utils
 
 ```tsx
 // theme.ts
+
 import { css } from "@swan-io/css";
 
 const input = css.extend({
