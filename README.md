@@ -62,7 +62,7 @@ const sheet = css.make({
   },
 });
 
-console.log(sheet.box); // a string list of generated classes
+console.log(sheet.box); // space-separated string of class names
 ```
 
 ```tsx
@@ -99,7 +99,10 @@ const sheet = css.make({
 
 ### css.extend
 
+Extend `css.make` input with custom tokens (e.g. colors, spacing, fonts) / utils.
+
 ```tsx
+// theme.ts
 import { css } from "@swan-io/css";
 
 const input = css.extend({
@@ -118,6 +121,7 @@ declare module "@swan-io/css" {
 ```
 
 ```tsx
+// main.ts
 import "./theme";
 
 import { createRoot } from "react-dom/client";
@@ -126,9 +130,7 @@ import { createRoot } from "react-dom/client";
 
 ```tsx
 const sheet = css.make(({ colors }) => ({
-  box: {
-    backgroundColor: colors.blue,
-  },
+  box: { backgroundColor: colors.blue },
 }));
 ```
 
@@ -155,6 +157,8 @@ const Component = ({ inline }: { inline: boolean }) => (
 ```
 
 ## CSS extraction
+
+For production, we recommend enabling the Vite extraction plugin to generate a static CSS file. This removes the runtime style injection, reduces bundle size, and improves performance.
 
 ```tsx
 import swanCss from "@swan-io/css/vite-plugin";
