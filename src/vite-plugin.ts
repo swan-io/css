@@ -179,16 +179,14 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
               }
 
               case "CallExpression": {
-                const fn = node.arguments[0];
-
-                if (fn == null) {
-                  break;
-                }
-
                 if (isCssMethod(node, cssImportName, "extend")) {
-                  if (fn.type === "ObjectExpression") {
+                  const arg = node.arguments[0];
+
+                  if (arg?.type === "ObjectExpression") {
                     css.extend(
-                      new Function(`return ${code.slice(fn.start, fn.end)};`)(),
+                      new Function(
+                        `return ${code.slice(arg.start, arg.end)};`,
+                      )(),
                     );
                   }
 
@@ -196,18 +194,22 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
                 }
 
                 if (isCssMethod(node, cssImportName, "make")) {
-                  if (fn.type === "ObjectExpression") {
+                  const arg = node.arguments[0];
+
+                  if (arg?.type === "ObjectExpression") {
                     css.make(
-                      new Function(`return ${code.slice(fn.start, fn.end)};`)(),
+                      new Function(
+                        `return ${code.slice(arg.start, arg.end)};`,
+                      )(),
                     );
                   } else if (
-                    fn.type === "ArrowFunctionExpression" ||
-                    fn.type === "FunctionExpression"
+                    arg?.type === "ArrowFunctionExpression" ||
+                    arg?.type === "FunctionExpression"
                   ) {
                     css.make(
                       new Function(
                         "input",
-                        `return (${code.slice(fn.start, fn.end)})(input);`,
+                        `return (${code.slice(arg.start, arg.end)})(input);`,
                       )(getCssMakeInput()),
                     );
                   }
@@ -320,17 +322,13 @@ var caches = {
           }
 
           case "CallExpression": {
-            const fn = node.arguments[0];
-
-            if (fn == null) {
-              break;
-            }
-
             if (isCssMethod(node, cssImportName, "extend")) {
-              if (fn.type === "ObjectExpression") {
+              const arg = node.arguments[0];
+
+              if (arg?.type === "ObjectExpression") {
                 const result = css.extend(
                   new Function(
-                    `return ${magicString.slice(fn.start, fn.end)};`,
+                    `return ${magicString.slice(arg.start, arg.end)};`,
                   )(),
                 );
 
@@ -347,10 +345,12 @@ var caches = {
             }
 
             if (isCssMethod(node, cssImportName, "make")) {
-              if (fn.type === "ObjectExpression") {
+              const arg = node.arguments[0];
+
+              if (arg?.type === "ObjectExpression") {
                 const result = css.make(
                   new Function(
-                    `return ${magicString.slice(fn.start, fn.end)};`,
+                    `return ${magicString.slice(arg.start, arg.end)};`,
                   )(),
                 );
 
@@ -360,13 +360,13 @@ var caches = {
                   JSON.stringify(result, null, 2),
                 );
               } else if (
-                fn.type === "ArrowFunctionExpression" ||
-                fn.type === "FunctionExpression"
+                arg?.type === "ArrowFunctionExpression" ||
+                arg?.type === "FunctionExpression"
               ) {
                 const result = css.make(
                   new Function(
                     "input",
-                    `return (${magicString.slice(fn.start, fn.end)})(input);`,
+                    `return (${magicString.slice(arg.start, arg.end)})(input);`,
                   )(getCssMakeInput()),
                 );
 
