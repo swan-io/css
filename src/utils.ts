@@ -1,5 +1,8 @@
 import type { ValueOf } from "./types";
 
+export const appendString = (acc: string, value: string): string =>
+  acc + (acc ? " " + value : value);
+
 export const forEach = <T extends Record<PropertyKey, unknown>>(
   object: T,
   callback: (key: keyof T, value: NonNullable<ValueOf<T>>) => void,

@@ -6,8 +6,9 @@ export const useSheetLogger = () => {
       if (event.code === "KeyL") {
         const id = "swan-stylesheet";
 
-        const sheet = document.querySelector<HTMLStyleElement>(
-          `style[id="${id}"]`,
+        const sheet = (
+          document.querySelector<HTMLLinkElement>(`link[id="${id}"]`) ??
+          document.querySelector<HTMLStyleElement>(`style[id="${id}"]`)
         )?.sheet;
 
         if (sheet != null) {

@@ -97,6 +97,41 @@ const sheet = css.make({
 });
 ```
 
+### css.extend
+
+```tsx
+import { css } from "@swan-io/css";
+
+const input = css.extend({
+  colors: {
+    red: "#fa2c37",
+    blue: "#2c7fff",
+    green: "#00c950",
+  },
+});
+
+type CustomInput = typeof input;
+
+declare module "@swan-io/css" {
+  export interface Input extends CustomInput {}
+}
+```
+
+```tsx
+import "./theme";
+
+import { createRoot } from "react-dom/client";
+// …
+```
+
+```tsx
+const sheet = css.make(({ colors }) => ({
+  box: {
+    backgroundColor: colors.blue,
+  },
+}));
+```
+
 ### cx
 
 Concatenate the generated classes from left to right, with subsequent styles overwriting the property values of earlier ones.
@@ -117,6 +152,18 @@ const sheet = css.make({
 const Component = ({ inline }: { inline: boolean }) => (
   <div className={cx(sheet.box, inline && sheet.inline)} />
 );
+```
+
+## CSS extraction
+
+```tsx
+import swanCss from "@swan-io/css/vite-plugin";
+import react from "@vitejs/plugin-react-swc";
+import { defineConfig } from "vite";
+
+export default defineConfig(({ command }) => ({
+  plugins: [react(), command === "build" && swanCss()],
+}));
 ```
 
 ## Links

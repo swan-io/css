@@ -64,25 +64,15 @@ const isWebColor = (color: string): boolean =>
   color === "inherit" ||
   color.indexOf("var(") === 0;
 
-const hexLookupTable = "0123456789abcdef";
-
 const rgbToHex = (r: number, g: number, b: number) => {
-  const r1 = r >> 4;
-  const r2 = r & 0xf;
-  const g1 = g >> 4;
-  const g2 = g & 0xf;
-  const b1 = b >> 4;
-  const b2 = b & 0xf;
+  const hex =
+    r.toString(16).padStart(2, "0") +
+    g.toString(16).padStart(2, "0") +
+    b.toString(16).padStart(2, "0");
 
-  return r1 === r2 && g1 === g2 && b1 === b2
-    ? "#" + hexLookupTable[r1] + hexLookupTable[g1] + hexLookupTable[b1]
-    : "#" +
-        hexLookupTable[r1] +
-        hexLookupTable[r2] +
-        hexLookupTable[g1] +
-        hexLookupTable[g2] +
-        hexLookupTable[b1] +
-        hexLookupTable[b2];
+  return hex[0] === hex[1] && hex[2] === hex[3] && hex[4] === hex[5]
+    ? "#" + hex[0] + hex[2] + hex[4]
+    : "#" + hex;
 };
 
 export const normalizeValue = (key: string, value: string | number): string => {
