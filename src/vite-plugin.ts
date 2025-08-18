@@ -64,7 +64,6 @@ const normalizeInput = (
       ? input
       : Object.values(input);
 
-// TODO: do nothing if it's SSR build, only client build
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   const { css, getCssMakeInput, getCssFileContent } = await import("./css");
   const { caches } = await import("./cx");
