@@ -6,21 +6,7 @@ import path from "node:path";
 import { type Node } from "oxc-parser";
 import { ResolverFactory } from "oxc-resolver";
 import { parseAndWalk } from "oxc-walker";
-import type { Plugin } from "vite";
-
-// Vite's default (https://vite.dev/config/shared-options.html#resolve-extensions)
-// TODO: inline? add cjs, cts?
-const SUPPORTED_EXTENSIONS = new Set([
-  ".mjs",
-  ".js",
-  ".mts",
-  ".ts",
-  ".jsx",
-  ".tsx",
-  // ".json",
-]);
-
-// oxc-parser: "js" | "jsx" | "ts" | "tsx"
+import type { Plugin, ResolvedConfig } from "vite";
 
 type PluginOptions = {
   fileName?: string;
@@ -47,22 +33,42 @@ const isCssMethodNode = (
   node.property.type === "Identifier" &&
   node.property.name === methodName;
 
-const normalizeRoot = (root: string, configFile: string | undefined) =>
-  path.isAbsolute(root)
-    ? root
+const normalizeConfig = (config: ResolvedConfig) => {
+  const { build, configFile: file, resolve } = config;
+  const input = build.rollupOptions.input ?? "index.html"; // fallback to vite's default
+
+  // https://vite.dev/config/shared-options.html#resolve-extensions
+  const supportedExts = new Set([".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx"]);
+  // oxc-parser: "js" | "jsx" | "ts" | "tsx"
+
+  const root = path.isAbsolute(config.root)
+    ? config.root
     : path.resolve(
-        configFile != null ? path.dirname(configFile) : process.cwd(),
-        root,
+        file != null ? path.dirname(file) : process.cwd(),
+        config.root,
       );
 
-const normalizeInput = (
-  input: string | string[] | Record<string, string>,
-): string[] =>
-  typeof input === "string"
-    ? [input]
-    : Array.isArray(input)
-      ? input
-      : Object.values(input);
+  return {
+    assetsDir: build.assetsDir,
+    root,
+    extensions: resolve.extensions.filter((ext) => supportedExts.has(ext)),
+
+    alias: resolve.alias.reduce<Record<string, string[]>>(
+      (acc, { find, replacement }) =>
+        find === "string"
+          ? { ...acc, [find]: [...(acc[find] ?? []), replacement] }
+          : acc,
+      {},
+    ),
+
+    inputs: (typeof input === "string"
+      ? [input]
+      : Array.isArray(input)
+        ? input
+        : Object.values(input)
+    ).map((input) => path.resolve(root, input)),
+  };
+};
 
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   const { css, getCssMakeInput, getCssFileContent } = await import("./css");
@@ -72,34 +78,26 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   const packageAliases = new Set([packageName]);
 
   let assetsDir = "assets";
+  let cxVirtualModuleCode = "";
   let emittedFileName = "";
 
-  let cx = "";
-
-  const virtualModuleId = "virtual:@swan-io/cx";
-  const resolvedVirtualModuleId = "\0" + virtualModuleId;
+  const cxVirtualModuleId = "virtual:@swan-io/cx";
+  const cxResolvedVirtualModuleId = "\0" + cxVirtualModuleId;
 
   return {
     name: packageName,
 
-    configResolved: (config) => {
-      assetsDir = config.build.assetsDir;
+    configResolved: (rawConfig) => {
+      const { alias, extensions, inputs, root, ...config } =
+        normalizeConfig(rawConfig);
 
-      // TODO: normalize aliases to an object
-      const alias = config.resolve.alias
-        .filter((alias) => typeof alias.find === "string")
-        .find((item) => item.find === packageName);
+      assetsDir = config.assetsDir;
 
-      if (alias != null) {
-        packageAliases.add(alias.replacement);
+      if (alias[packageName] != null) {
+        alias[packageName].forEach((item) => packageAliases.add(item));
       }
 
-      const extensions = config.resolve.extensions.filter((ext) =>
-        SUPPORTED_EXTENSIONS.has(ext),
-      );
-
-      // TODO: add support for aliases
-      const resolve = new ResolverFactory({ extensions });
+      const resolve = new ResolverFactory({ alias, extensions });
 
       const getImportMap = (inputs: string[]): Set<string> => {
         const seen = new Set<string>();
@@ -176,15 +174,7 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
         return seen;
       };
 
-      const root = normalizeRoot(config.root, config.configFile);
-
-      const input = normalizeInput(
-        config.build.rollupOptions.input ?? "index.html", // fallback to vite's default
-      )
-        .filter((item) => item != null)
-        .map((input) => path.resolve(root, input));
-
-      const imports = getImportMap(input);
+      const imports = getImportMap(inputs);
 
       for (const id of imports) {
         const code = fs.readFileSync(id, "utf-8");
@@ -276,18 +266,18 @@ var caches = {
         }
       });
 
-      cx = magicString.toString();
+      cxVirtualModuleCode = magicString.toString();
     },
 
     resolveId(id) {
-      if (id === virtualModuleId) {
-        return resolvedVirtualModuleId;
+      if (id === cxVirtualModuleId) {
+        return cxResolvedVirtualModuleId;
       }
     },
 
     load(id) {
-      if (id === resolvedVirtualModuleId) {
-        return cx;
+      if (id === cxResolvedVirtualModuleId) {
+        return cxVirtualModuleCode;
       }
     },
 
@@ -327,7 +317,7 @@ var caches = {
             magicString.overwrite(
               node.start,
               node.end,
-              `import { ${cxLocalName === "cx" ? "cx" : `cx as ${cxLocalName}`} } from "${virtualModuleId}";`,
+              `import { ${cxLocalName === "cx" ? "cx" : `cx as ${cxLocalName}`} } from "${cxVirtualModuleId}";`,
             );
           }
         } else if (
