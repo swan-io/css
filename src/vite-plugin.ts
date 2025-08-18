@@ -3,7 +3,7 @@ import HTMLParser from "node-html-parser";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { type Node } from "oxc-parser";
+import { type CallExpression, type ImportDeclaration } from "oxc-parser";
 import { ResolverFactory } from "oxc-resolver";
 import { parseAndWalk } from "oxc-walker";
 import type { Plugin, ResolvedConfig } from "vite";
@@ -21,17 +21,28 @@ const stringifyMap = (value: Map<string, string | undefined>): string =>
     .map(([key, value]) => `["${key}", "${value}"]`)
     .join(",")}])`;
 
-const isCssMethodNode = (
+const isCssMethod = (
+  { callee }: CallExpression,
   importName: string,
   methodName: "extend" | "make",
-  node: Node,
 ) =>
   importName !== "" &&
-  node.type === "MemberExpression" &&
-  node.object.type === "Identifier" &&
-  node.object.name === importName &&
-  node.property.type === "Identifier" &&
-  node.property.name === methodName;
+  callee.type === "MemberExpression" &&
+  callee.object.type === "Identifier" &&
+  callee.object.name === importName &&
+  callee.property.type === "Identifier" &&
+  callee.property.name === methodName;
+
+const findSpecifier = (
+  { specifiers }: ImportDeclaration,
+  specifierName: "css" | "cx",
+) =>
+  specifiers.find(
+    (specifier) =>
+      specifier.type === "ImportSpecifier" &&
+      specifier.imported.type === "Identifier" &&
+      specifier.imported.name === specifierName,
+  );
 
 const normalizeConfig = (config: ResolvedConfig) => {
   const { build, configFile: file, resolve } = config;
@@ -69,88 +80,6 @@ const normalizeConfig = (config: ResolvedConfig) => {
   };
 };
 
-const getImportMap = ({
-  alias,
-  extensions,
-  root,
-  inputs,
-}: ReturnType<typeof normalizeConfig>): Set<string> => {
-  const resolve = new ResolverFactory({ alias, extensions });
-  const seen = new Set<string>();
-
-  const visit = (file: string) => {
-    if (seen.has(file)) {
-      return;
-    }
-
-    seen.add(file);
-
-    const code = fs.readFileSync(file, "utf-8");
-    const dir = path.dirname(file);
-    const ext = path.extname(file);
-
-    if (ext === ".html" || ext === ".htm") {
-      const html = HTMLParser.parse(code);
-
-      const imports = [...html.querySelectorAll(`script[type="module"]`)]
-        .map((item) => item.getAttribute("src"))
-        .filter((src) => src != null)
-        .filter((src) => extensions.includes(path.extname(src)))
-        .map((src) =>
-          path.resolve(root, path.isAbsolute(src) ? path.join(dir, src) : src),
-        );
-
-      // Depth-first: visit each import before continuing
-      for (const item of imports) {
-        visit(item);
-      }
-    } else if (extensions.includes(ext)) {
-      const imports = new Set<string>();
-
-      // TODO: avoid parsing + walking the file twice (save ASTs?)
-      // TODO: replace with parseSync + walk
-      parseAndWalk(code, file, (node) => {
-        if (
-          node.type === "ImportDeclaration" ||
-          node.type === "ExportAllDeclaration"
-        ) {
-          return imports.add(node.source.value);
-        }
-
-        if (
-          node.type === "ImportExpression" ||
-          node.type === "ExportNamedDeclaration"
-        ) {
-          if (
-            node.source?.type === "Literal" &&
-            typeof node.source.value === "string"
-          ) {
-            return imports.add(node.source.value);
-          }
-        }
-      });
-
-      for (const specifier of imports) {
-        try {
-          const resolved = resolve.sync(dir, specifier).path;
-
-          if (resolved != null) {
-            visit(resolved);
-          }
-        } catch {
-          // ignore unresolved
-        }
-      }
-    }
-  };
-
-  for (const input of inputs) {
-    visit(input);
-  }
-
-  return seen;
-};
-
 const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
   const { css, getCssMakeInput, getCssFileContent } = await import("./css");
   const { caches } = await import("./cx");
@@ -170,7 +99,7 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
 
     configResolved: (resolvedConfig) => {
       const config = normalizeConfig(resolvedConfig);
-      const { alias } = config;
+      const { alias, extensions, inputs, root } = config;
 
       assetsDir = config.assetsDir;
 
@@ -178,67 +107,145 @@ const plugin = async (options: PluginOptions = {}): Promise<Plugin> => {
         alias[packageName].forEach((item) => packageAliases.add(item));
       }
 
-      const imports = getImportMap(config);
+      const resolve = new ResolverFactory({ alias, extensions });
+      const resolvedFiles = new Set<string>();
 
-      for (const id of imports) {
-        const code = fs.readFileSync(id, "utf-8");
+      const visit = (file: string) => {
+        if (resolvedFiles.has(file)) {
+          return;
+        }
 
-        let cssImportName = "";
+        resolvedFiles.add(file);
 
-        parseAndWalk(code, id, (node) => {
-          if (
-            node.type === "ImportDeclaration" &&
-            packageAliases.has(node.source.value)
-          ) {
-            const specifier = node.specifiers.find(
-              (specifier) =>
-                specifier.type === "ImportSpecifier" &&
-                specifier.imported.type === "Identifier" &&
-                specifier.imported.name === "css",
+        const code = fs.readFileSync(file, "utf-8");
+        const dir = path.dirname(file);
+        const ext = path.extname(file);
+
+        if (ext === ".html" || ext === ".htm") {
+          const html = HTMLParser.parse(code);
+
+          const imports = [...html.querySelectorAll(`script[type="module"]`)]
+            .map((item) => item.getAttribute("src"))
+            .filter((src) => src != null)
+            .filter((src) => extensions.includes(path.extname(src)))
+            .map((src) =>
+              path.resolve(
+                root,
+                path.isAbsolute(src) ? path.join(dir, src) : src,
+              ),
             );
 
-            if (specifier != null) {
-              cssImportName = specifier.local.name;
-            }
-          } else if (
-            node.type === "CallExpression" &&
-            isCssMethodNode(cssImportName, "extend", node.callee)
-          ) {
-            const fn = node.arguments[0];
+          // Depth-first: visit each import before continuing
+          for (const item of imports) {
+            visit(item);
+          }
+        } else if (extensions.includes(ext)) {
+          const imports = new Set<string>();
 
-            if (fn != null && fn.type === "ObjectExpression") {
-              css.extend(
-                new Function(`return ${code.slice(fn.start, fn.end)};`)(),
-              );
-            }
-          } else if (
-            node.type === "CallExpression" &&
-            isCssMethodNode(cssImportName, "make", node.callee)
-          ) {
-            const fn = node.arguments[0];
+          let cssImportName = "";
 
-            if (fn != null && fn.type === "ObjectExpression") {
-              css.make(
-                new Function(`return ${code.slice(fn.start, fn.end)};`)(),
-              );
-            } else if (
-              fn != null &&
-              (fn.type === "ArrowFunctionExpression" ||
-                fn.type === "FunctionExpression")
-            ) {
-              css.make(
-                new Function(
-                  "input",
-                  `return (${code.slice(fn.start, fn.end)})(input);`,
-                )(getCssMakeInput()),
-              );
+          parseAndWalk(code, file, (node) => {
+            switch (node.type) {
+              case "ExportNamedDeclaration": {
+                if (
+                  typeof node.source != null &&
+                  typeof node.source?.value === "string"
+                ) {
+                  imports.add(node.source.value);
+                }
+
+                break;
+              }
+
+              case "ExportAllDeclaration": {
+                imports.add(node.source.value);
+                break;
+              }
+
+              case "ImportExpression": {
+                if (
+                  node.source.type === "Literal" &&
+                  typeof node.source.value === "string"
+                ) {
+                  imports.add(node.source.value);
+                }
+
+                break;
+              }
+
+              case "ImportDeclaration": {
+                imports.add(node.source.value);
+
+                if (packageAliases.has(node.source.value)) {
+                  const specifier = findSpecifier(node, "css");
+
+                  if (specifier != null) {
+                    cssImportName = specifier.local.name;
+                  }
+                }
+
+                break;
+              }
+
+              case "CallExpression": {
+                const fn = node.arguments[0];
+
+                if (fn == null) {
+                  break;
+                }
+
+                if (isCssMethod(node, cssImportName, "extend")) {
+                  if (fn.type === "ObjectExpression") {
+                    css.extend(
+                      new Function(`return ${code.slice(fn.start, fn.end)};`)(),
+                    );
+                  }
+
+                  break;
+                }
+
+                if (isCssMethod(node, cssImportName, "make")) {
+                  if (fn.type === "ObjectExpression") {
+                    css.make(
+                      new Function(`return ${code.slice(fn.start, fn.end)};`)(),
+                    );
+                  } else if (
+                    fn.type === "ArrowFunctionExpression" ||
+                    fn.type === "FunctionExpression"
+                  ) {
+                    css.make(
+                      new Function(
+                        "input",
+                        `return (${code.slice(fn.start, fn.end)})(input);`,
+                      )(getCssMakeInput()),
+                    );
+                  }
+                }
+              }
+            }
+          });
+
+          for (const specifier of imports) {
+            try {
+              const resolved = resolve.sync(dir, specifier).path;
+
+              if (resolved != null) {
+                visit(resolved);
+              }
+            } catch {
+              // ignore unresolved
             }
           }
-        });
+        }
+      };
+
+      for (const input of inputs) {
+        visit(input);
       }
 
       const cxId = path.join(__dirname, "./cx.mjs");
       const cxCode = fs.readFileSync(cxId, "utf-8");
+
       const magicString = new MagicString(cxCode);
 
       parseAndWalk(cxCode, cxId, (node) => {
@@ -284,102 +291,101 @@ var caches = {
 
     transform(code, id) {
       let cssImportName = "";
-      let isCxImported = false;
+      let cxImportName = "";
 
       const magicString = new MagicString(code);
 
       parseAndWalk(code, id, (node) => {
-        if (
-          node.type === "ImportDeclaration" &&
-          packageAliases.has(node.source.value)
-        ) {
-          const cssLocalName = node.specifiers.find(
-            (specifier) =>
-              specifier.type === "ImportSpecifier" &&
-              specifier.imported.type === "Identifier" &&
-              specifier.imported.name === "css",
-          )?.local.name;
+        switch (node.type) {
+          case "ImportDeclaration": {
+            if (packageAliases.has(node.source.value)) {
+              const cssLocalName = findSpecifier(node, "css")?.local.name;
+              const cxLocalName = findSpecifier(node, "cx")?.local.name;
 
-          const cxLocalName = node.specifiers.find(
-            (specifier) =>
-              specifier.type === "ImportSpecifier" &&
-              specifier.imported.type === "Identifier" &&
-              specifier.imported.name === "cx",
-          )?.local.name;
+              if (cssLocalName != null) {
+                cssImportName = cssLocalName;
+                magicString.overwrite(node.start, node.end, "");
+              }
 
-          if (cssLocalName != null) {
-            cssImportName = cssLocalName;
-            magicString.overwrite(node.start, node.end, "");
+              if (cxLocalName != null && cxLocalName !== "") {
+                cxImportName = cxLocalName;
+
+                magicString.overwrite(
+                  node.start,
+                  node.end,
+                  `import { ${cxLocalName === "cx" ? "cx" : `cx as ${cxLocalName}`} } from "${cxVirtualModuleId}";`,
+                );
+              }
+            }
+
+            break;
           }
 
-          if (cxLocalName != null && !isCxImported) {
-            isCxImported = true;
+          case "CallExpression": {
+            const fn = node.arguments[0];
 
-            magicString.overwrite(
-              node.start,
-              node.end,
-              `import { ${cxLocalName === "cx" ? "cx" : `cx as ${cxLocalName}`} } from "${cxVirtualModuleId}";`,
-            );
-          }
-        } else if (
-          node.type === "CallExpression" &&
-          isCssMethodNode(cssImportName, "extend", node.callee)
-        ) {
-          const fn = node.arguments[0];
+            if (fn == null) {
+              break;
+            }
 
-          if (fn != null && fn.type === "ObjectExpression") {
-            const result = css.extend(
-              new Function(`return ${magicString.slice(fn.start, fn.end)};`)(),
-            );
+            if (isCssMethod(node, cssImportName, "extend")) {
+              if (fn.type === "ObjectExpression") {
+                const result = css.extend(
+                  new Function(
+                    `return ${magicString.slice(fn.start, fn.end)};`,
+                  )(),
+                );
 
-            magicString.overwrite(
-              node.start,
-              node.end,
-              JSON.stringify(result, null, 2),
-            );
-          } else {
-            magicString.overwrite(node.start, node.end, "{}");
-          }
-        } else if (
-          node.type === "CallExpression" &&
-          isCssMethodNode(cssImportName, "make", node.callee)
-        ) {
-          const fn = node.arguments[0];
+                magicString.overwrite(
+                  node.start,
+                  node.end,
+                  JSON.stringify(result, null, 2),
+                );
+              } else {
+                magicString.overwrite(node.start, node.end, "{}");
+              }
 
-          if (fn != null && fn.type === "ObjectExpression") {
-            const result = css.make(
-              new Function(`return ${magicString.slice(fn.start, fn.end)};`)(),
-            );
+              break;
+            }
 
-            magicString.overwrite(
-              node.start,
-              node.end,
-              JSON.stringify(result, null, 2),
-            );
-          } else if (
-            fn != null &&
-            (fn.type === "ArrowFunctionExpression" ||
-              fn.type === "FunctionExpression")
-          ) {
-            const result = css.make(
-              new Function(
-                "input",
-                `return (${magicString.slice(fn.start, fn.end)})(input);`,
-              )(getCssMakeInput()),
-            );
+            if (isCssMethod(node, cssImportName, "make")) {
+              if (fn.type === "ObjectExpression") {
+                const result = css.make(
+                  new Function(
+                    `return ${magicString.slice(fn.start, fn.end)};`,
+                  )(),
+                );
 
-            magicString.overwrite(
-              node.start,
-              node.end,
-              JSON.stringify(result, null, 2),
-            );
-          } else {
-            magicString.overwrite(node.start, node.end, "{}");
+                magicString.overwrite(
+                  node.start,
+                  node.end,
+                  JSON.stringify(result, null, 2),
+                );
+              } else if (
+                fn.type === "ArrowFunctionExpression" ||
+                fn.type === "FunctionExpression"
+              ) {
+                const result = css.make(
+                  new Function(
+                    "input",
+                    `return (${magicString.slice(fn.start, fn.end)})(input);`,
+                  )(getCssMakeInput()),
+                );
+
+                magicString.overwrite(
+                  node.start,
+                  node.end,
+                  JSON.stringify(result, null, 2),
+                );
+              } else {
+                magicString.overwrite(node.start, node.end, "{}");
+              }
+            }
           }
         }
       });
 
-      if (cssImportName !== "" || isCxImported) {
+      if (cssImportName !== "" || cxImportName !== "") {
         return {
           code: magicString.toString(),
           map: magicString.generateMap({ hires: true }),
