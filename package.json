@@ -54,7 +54,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
-      "esbuild"
+      "esbuild",
+      "oxc-resolver"
     ]
   },
   "prettier": {
