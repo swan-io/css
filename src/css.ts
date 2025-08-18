@@ -207,52 +207,64 @@ const insertAtomicRules = (style: Style): string => {
   let classNames = "";
 
   forEach(style, (key, value) => {
-    if (key === ":hover") {
-      forEach(value as FlatStyle, (key, value) => {
-        const rule = stringifyRule(key, value);
-        const className = "h-" + hash(rule);
+    switch (key) {
+      case ":hover": {
+        forEach(value as FlatStyle, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "h-" + hash(rule);
 
-        if (!caches.hover.has(className)) {
-          hoverSheet.insertRule(`.${className}:hover{${rule}}`);
-          caches.hover.set(className, key);
-        }
+          if (!caches.hover.has(className)) {
+            hoverSheet.insertRule(`.${className}:hover{${rule}}`);
+            caches.hover.set(className, key);
+          }
 
-        classNames = appendString(classNames, className);
-      });
-    } else if (key === ":focus") {
-      forEach(value as FlatStyle, (key, value) => {
-        const rule = stringifyRule(key, value);
-        const className = "f-" + hash(rule);
+          classNames = appendString(classNames, className);
+        });
 
-        if (!caches.focus.has(className)) {
-          focusSheet.insertRule(`.${className}:focus-visible{${rule}}`);
-          caches.focus.set(className, key);
-        }
-
-        classNames = appendString(classNames, className);
-      });
-    } else if (key === ":active") {
-      forEach(value as FlatStyle, (key, value) => {
-        const rule = stringifyRule(key, value);
-        const className = "a-" + hash(rule);
-
-        if (!caches.active.has(className)) {
-          activeSheet.insertRule(`.${className}:active{${rule}}`);
-          caches.active.set(className, key);
-        }
-
-        classNames = appendString(classNames, className);
-      });
-    } else {
-      const rule = stringifyRule(key, value as string | number);
-      const className = "x-" + hash(rule);
-
-      if (!caches.atomic.has(className)) {
-        atomicSheet.insertRule(`.${className}{${rule}}`);
-        caches.atomic.set(className, key);
+        break;
       }
+      case ":focus": {
+        forEach(value as FlatStyle, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "f-" + hash(rule);
 
-      classNames = appendString(classNames, className);
+          if (!caches.focus.has(className)) {
+            focusSheet.insertRule(`.${className}:focus-visible{${rule}}`);
+            caches.focus.set(className, key);
+          }
+
+          classNames = appendString(classNames, className);
+        });
+
+        break;
+      }
+      case ":active": {
+        forEach(value as FlatStyle, (key, value) => {
+          const rule = stringifyRule(key, value);
+          const className = "a-" + hash(rule);
+
+          if (!caches.active.has(className)) {
+            activeSheet.insertRule(`.${className}:active{${rule}}`);
+            caches.active.set(className, key);
+          }
+
+          classNames = appendString(classNames, className);
+        });
+
+        break;
+      }
+      default: {
+        const rule = stringifyRule(key, value as string | number);
+        const className = "x-" + hash(rule);
+
+        if (!caches.atomic.has(className)) {
+          atomicSheet.insertRule(`.${className}{${rule}}`);
+          caches.atomic.set(className, key);
+        }
+
+        classNames = appendString(classNames, className);
+        break;
+      }
     }
   });
 

@@ -163,14 +163,23 @@ export const preprocessAtomicStyle = (style: Style): Style => {
   let active: FlatStyle | undefined = undefined;
 
   forEach(style, (key, value) => {
-    if (key === ":hover") {
-      hover = preprocessStyle(value as FlatStyle);
-    } else if (key === ":focus") {
-      focus = preprocessStyle(value as FlatStyle);
-    } else if (key === ":active") {
-      active = preprocessStyle(value as FlatStyle);
-    } else {
-      preprocessRule(output, key, value as ValueOf<FlatStyle>);
+    switch (key) {
+      case ":hover": {
+        hover = preprocessStyle(value as FlatStyle);
+        break;
+      }
+      case ":focus": {
+        focus = preprocessStyle(value as FlatStyle);
+        break;
+      }
+      case ":active": {
+        active = preprocessStyle(value as FlatStyle);
+        break;
+      }
+      default: {
+        preprocessRule(output, key, value as ValueOf<FlatStyle>);
+        break;
+      }
     }
   });
 
